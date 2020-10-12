@@ -1,2 +1,2 @@
 # SV-ONT-Tibetan
- Character SVs in Tibetans
+ A pipeline for SV-calling and annotation with nanopore sequencing data.
