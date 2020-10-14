@@ -1,4 +1,4 @@
-func.load.svtk.annotsv.local.include_Biaka <- function(path, samplelist){
+func.load.svtk.annotsv <- function(path, samplelist){
   
   num_samples <- nrow(samplelist)
   

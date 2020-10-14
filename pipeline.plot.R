@@ -17,18 +17,10 @@ library(VariantAnnotation)
 library(vcfR)
 library(CePa)
 
-###################### Data ######################
-setwd('/home/quanc/SynologyDrive/project/20190410_nanopore_sv/R')
-path_data <- '../data/result_genotypted/'
-
-# library(readxl)
-# data_samples_info <- read_excel(paste(path_data,'samples.xlsx',sep = ''))
+###################### Sample Information ######################
 
 library(openxlsx)
-data_samples_info <- read.xlsx(paste(path_data,'samples.xlsx',sep = ''))
-
-
-data_samples_info <- subset(data_samples_info, !SampleID%in%c('HG006', 'HG007', 'HG00512', 'HG00513','HX1','WGC025266D', 'WGC025273D'))
+data_samples_info <- read.xlsx(paste('example','samples.xlsx',sep = '/'))
 
 data_samples_info$Group <- 'HAN'
 data_samples_info[data_samples_info$Races=='TIB',]$Group <- 'TIB'
@@ -39,12 +31,10 @@ data_samples_info$Group <- factor(data_samples_info$Group, levels = c('HUM', 'AF
 data_samples_info$Group_Detail <- as.character(data_samples_info$Group)
 data_samples_info[data_samples_info$Races=='HAN'&data_samples_info$Location%in%c('Guangxi','Guangdong'),]$Group_Detail <- 'HANS'
 data_samples_info[data_samples_info$Races=='HAN'&!data_samples_info$Location%in%c('Guangxi','Guangdong'),]$Group_Detail <- 'HANN'
-# data_samples_info[data_samples_info$Races=='HAN'&data_samples_info$Location%in%c('Beijing'),]$Group_Detail <- 'HANB'
 data_samples_info[data_samples_info$Altitude>=4000&data_samples_info$Races=='TIB',]$Group_Detail <- 'TIBG'
 data_samples_info[data_samples_info$Altitude<4000&data_samples_info$Races=='TIB',]$Group_Detail <- 'TIBL'
 data_samples_info[data_samples_info$Races=='Biaka',]$Group_Detail <- 'AFR'
 data_samples_info[data_samples_info$Races=='HUM',]$Group_Detail <- 'HUM'
-# data_samples_info$Group_Detail <- factor(data_samples_info$Group_Detail, levels = c('HUM', 'AFR', 'HANB','HANN', 'HANS', 'TIBL', 'TIBG'))
 data_samples_info$Group_Detail <- factor(data_samples_info$Group_Detail, levels = c('HUM', 'AFR', 'HANN', 'HANS', 'TIBL', 'TIBG'))
 
 data_samples_info$Source <- 'NA'
@@ -52,15 +42,14 @@ data_samples_info[str_detect(data_samples_info$SampleID, 'CQ'),]$Source <- 'T15H
 data_samples_info[str_detect(data_samples_info$SampleID, 'SAM'),]$Source <- 'T38H39'
 data_samples_info[str_detect(data_samples_info$SampleID, 'WGC'),]$Source <- 'T48H50'
 data_samples_info[str_detect(data_samples_info$SampleID, 'HGDP'),]$Source <- 'HGDP'
-# data_samples_info[str_detect(data_samples_info$SampleID, 'NA'),]$Source <- 'IGSR'
 data_samples_info[data_samples_info$Races=='HUM',]$Source <- 'HUM'
 data_samples_info$Source <- factor(data_samples_info$Source)
 
 data_samples_info[is.na(data_samples_info$Altitude),]$Altitude <- 0
 
-data_sample_het <- read.table(paste(path_data, '/ld/merge.genotypes.corrected.delCHR.svtk.gte1ngs.LDpruned.het',sep = ''), header = TRUE)
-# data_sample_het$PHt.LDpruned <- (data_sample_het$N_SITES-data_sample_het$O.HOM.)/data_sample_het$N_SITES
-# data_sample_het$PHot.LDpruned <- data_sample_het$O.HOM./data_sample_het$N_SITES
+###################### heterozygosity and homozygosity ######################
+
+data_sample_het <- read.table(paste('example', 'merge.genotypes.corrected.delCHR.svtk.gte1ngs.LDpruned.het',sep = '/'), header = TRUE)
 data_sample_het$PHt.LDpruned <- (data_sample_het$N_SITES-data_sample_het$O.HOM.)
 data_sample_het$PHot.LDpruned <- data_sample_het$O.HOM.
 data_sample_het <- data_sample_het[data_sample_het$INDV%in%data_samples_info$SampleID,]
@@ -69,25 +58,20 @@ data_samples_info$PHot.LDpruned <- NA
 data_samples_info[order(data_samples_info$SampleID),]$PHt.LDpruned <- data_sample_het[order(data_sample_het$INDV),]$PHt.LDpruned
 data_samples_info[order(data_samples_info$SampleID),]$PHot.LDpruned <- data_sample_het[order(data_sample_het$INDV),]$PHot.LDpruned
 
-data_sample_het_snp <- read.table(paste(path_data, '/ld/merge.T48H50andT38H39.reserved.LDpruned.het',sep = ''), header = TRUE)
+data_sample_het_snp <- read.table(paste('example', 'merge.T48H50andT38H39.reserved.LDpruned.het',sep = '/'), header = TRUE)
 data_sample_het_snp <- data_sample_het_snp[data_sample_het_snp$INDV%in%data_samples_info$SampleID,]
 data_sample_het_snp$PHt.LDpruned.SNP <- (data_sample_het_snp$N_SITES-data_sample_het_snp$O.HOM.)/data_sample_het_snp$N_SITES
 data_samples_info <- merge(data_samples_info,data_sample_het_snp[,c('INDV','PHt.LDpruned.SNP')],by.x='SampleID',by.y='INDV',all.x=TRUE)
 
 ###################### sample stats ######################
-data_sample <- read.table(paste(path_data, '/stats/re5.gt.stats.sample.csv', sep = ''))
-colnames(data_sample) <- c('id', 'Type', 'Discovery' )
-data_sample$id <- factor(data_sample$id)
-
-data_sv_dist <- read.table(paste(path_data, '/merge.genotypes.corrected.delCHR.svtk.dist', sep = ''))
+data_sv_dist <- read.table(paste('example', 'merge.genotypes.corrected.delCHR.svtk.dist', sep = '/'))
 colnames(data_sv_dist) <- c('Dist','Chrom','All','Shared','Major','Polymorphic','Singleton')
 data_sv_dist <- data_sv_dist[data_sv_dist$All>0, ]
 
 ###################### sv details ######################
-source('funcs_load_data.R')
-path_TIBvsHAN <- paste(path_data, 'merge.genotypes.corrected.delCHR.svtk.annotsv.tsv', sep = '/')
-# data_all <- func.load.svtk.annotsv(path_TIBvsHAN, data_samples_info)
-data_all <- func.load.svtk.annotsv.local.include_Biaka(path = path_TIBvsHAN, samplelist = data_samples_info)
+source('scripts/funcs_load_data.R')
+path_TIBvsHAN <- paste('example', 'merge.genotypes.corrected.delCHR.svtk.annotsv.tsv', sep = '/')
+data_all <- func.load.svtk.annotsv(path = path_TIBvsHAN, samplelist = data_samples_info)
 
 data_sv_details_all <- data_all$data_sv
 data_sample_details <- data_all$data_samples
@@ -104,162 +88,82 @@ data_all_vcf <- func.load.svtk.vcf.local(path_TIBvsHAN_vcf, reference_fasta=past
 data_sv_details_raw <- data_all_vcf$data_sv_vcf
 data_sv_details_all_karyo <- data_all_vcf$data_sv_karyo
 
-###################### sv LD&EQTL&GWAS with SNV ######################
-source('funcs_load_data.R')
-path_ld_snps <- paste(path_data, '/ld/merge.genotypes.corrected.svtk.T48H50andT38H39.reserved.lt1M.ld.snps', sep = '/')
-data_sv_details_all <- func.add.annot(data = data_sv_details_all, path_gc_bed = path_ld_snps, col_annot = 2, colname_annot = 'LD', col_svid = 1, delCHR = TRUE, header = FALSE)
-data_sv_details_all <- data_sv_details_all[order(data_sv_details_all$SVID),]
 
-path_ld_snps <- paste(path_data, 'merge.genotypes.corrected.svtk.T48H50andT38H39.reserved.lt1M.ld.snps.bed', sep = '/')
-data_snps_ld <- read.table(path_ld_snps, header=FALSE, sep = '\t')
-colnames(data_snps_ld) <- c('Chrom', 'POS', 'END', 'LD', 'SVID')
+###################### confguration for plots ######################
+prefix_filename = 'plots'
+config_color_repeat <- c(
+  'Low_complexity'='light blue',
+  'Simple_repeat'='blue',
+  'Satellite'='dark blue',
+  'SINE'='green',
+  'LINE'='yellow green',
+  'LTR'='dark green',
+  'DNA'='dark red',
+  'RNA'='purple',
+  'RC'='yellow',
+  'None'='gray',
+  'Other'='darkgray')
 
-# path_eqtl_snps <- paste(path_data, 'merge.genotypes.corrected.svtk.T48H50andT38H39.reserved.lt1M.ld.snps.eqtl.bed', sep = '/')
-# data_snps_eqtl <- read.table(path_eqtl_snps, header=FALSE, sep = '\t')
-# data_snps_eqtl <- data_snps_eqtl[,c(1:5,9:10)]
-# colnames(data_snps_eqtl) <- c('Chrom', 'POS', 'END', 'LD', 'SVID', 'Gene', 'Tissue')
-# 
-path_gwas_snps <- paste(path_data, 'merge.genotypes.corrected.svtk.T48H50andT38H39.reserved.lt1M.ld.snps.gwas.bed', sep = '/')
-data_snps_gwas <- read.table(path_gwas_snps, header=FALSE, sep = '\t')
-data_snps_gwas <- data_snps_gwas[,c(1:5,9:10)]
-colnames(data_snps_gwas) <- c('Chrom', 'POS', 'END', 'LD', 'SVID', 'SNPID', 'Gene')
-data_snps_gwas <- data_snps_gwas[data_snps_gwas$Gene!='.'&!is.na(data_snps_gwas$Gene),]
-###################### target-90 ######################
-data_sv_details_target90 <- data_sv_details_all[data_sv_details_all$SVID%in%data_sv_adapt_introgression_all$SVID,]
-tmp_del_bed <- data_sv_details_target90[data_sv_details_target90$SVTYPE=='DEL',c('SVID','Chrom','POS','END','SVTYPE')]
-colnames(tmp_del_bed) <- c('id', 'chr', 'start', 'end', 'SVType')
-# tmp_del_bed$SVID <- paste('CNV',seq(nrow(tmp_del_bed)), sep = '')
-write.table(
-  tmp_del_bed, 
-  file = '../data/result_genotypted/target-90/data_pairs_target_90.del.bed',
-  quote = FALSE,
-  row.names = FALSE,
-  col.names = TRUE,sep = '\t'
-            )
+config_color_svtype <- c('DEL'='dark red',
+                         'INS'='purple',
+                         'DUP'='blue',
+                         'INV'='dark green',
+                         'TRA'='light blue')
 
+config_color_group_supp <- c('Singleton'='light blue',
+                             'Polymorphic'='blue',
+                             'Major'='purple',
+                             'Shared'='dark red')
 
-path_eqtl_snps <- paste(path_data, 'target-90/res.egene.caviar.txt', sep = '/')
-data_egene_target_90 <- read.table(path_eqtl_snps, header=FALSE, sep = '\t')
-data_egene_target_90 <- data_egene_target_90[,c(4:11)]
-colnames(data_egene_target_90) <- c('ID', 'rsID', 'EnsemID', 'Gene', 'log2_aFC', 'Tissue', 'SVID','CPP')
+config_color_group_pop <- c('All'='black',
+                            'Shared'='gray',
+                            'AFR'='dark red',
+                            'HAN'='dark green',
+                            'TIB'='dark blue',
+                            'HANN'='green',
+                            'HANS'='dark green',
+                            'TIBG'='blue',
+                            'TIBL'='dodger blue')
 
-path_eqtl_snps <- paste(path_data, 'target-90/res.pairs.caviar.txt', sep = '/')
-data_pairs_target_90 <- read.table(path_eqtl_snps, header=FALSE, sep = '\t')
-data_pairs_target_90 <- data_pairs_target_90[,c(4:10)]
-colnames(data_pairs_target_90) <- c('ID', 'EnsemID', 'Tissue', 'SVID','TSS_distance','slope','CPP')
-data_pairs_target_90 <- data_pairs_target_90[!is.na(data_pairs_target_90$TSS_distance),]
+config_color_group_supp_han <- c('No Support'='gray',
+                                 'Singleton'='light blue',
+                                 'Polymorphic'='blue',
+                                 'Major'='purple',
+                                 'Shared'='dark red')
 
-data_egene_target_90$slope<-NA
-for (index_row in 1:nrow(data_egene_target_90)) {
-  
-  tmp <- data_egene_target_90[index_row,]
-  
-  tmp_replace <- data_pairs_target_90[data_pairs_target_90$ID%in%tmp$ID&
-                                        data_pairs_target_90$EnsemID%in%tmp$EnsemID&
-                                        data_pairs_target_90$Tissue%in%tmp$Tissue&
-                                        data_pairs_target_90$SVID%in%tmp$SVID,]
-  if (nrow(tmp_replace) > 0) {
-    data_egene_target_90[index_row,]$slope <- tmp_replace$slope
-  }
-}
+# config_color_group_len <- data.frame(GROUP_LEN=c('0-1k',    '1k-20k', 'above 20k'),
+                                     # Color=c('light blue', 'purple','dark red'))
+config_color_group_len <- c('0-100bp'='dark red',
+                            '100bp-250bp'='purple',
+                            '250bp-500bp'='blue',
+                            '500bp-1kb'='light blue',
+                            '50bp-1kb'='dark red',
+                            '1kb-10kb'='purple',
+                            '10kb-100kb'='blue',
+                            '100kb-1Mb'='dark green',
+                            'above 1Mb'='light blue')
 
-data_egene_target_90$SVID <- str_split_fixed(data_egene_target_90$SVID, 'chr', n = 2)[,2] 
-data_pairs_target_90$SVID <- str_split_fixed(data_pairs_target_90$SVID, 'chr', n = 2)[,2] 
+config_color_database <- c('1000Genome'='dark red',
+                           'DDD'='purple',
+                           'DGV'='blue',
+                           'GnomAD'='dark green',
+                           'IMH'='light blue',
+                           'None'='gray')
 
-tmp <- data_sv_details_all[,c('SVID', 'SVTYPE', 'GROUP_SV')]
-data_egene_target_90 <- merge(x=data_egene_target_90, y=tmp, by='SVID', all.x=TRUE, all.y=FALSE)
-data_pairs_target_90 <- merge(x=data_pairs_target_90, y=tmp, by='SVID', all.x=TRUE, all.y=FALSE)
+config_color_gene <- c('COPY_GAIN'='blue',
+                       'DUP_PARTIAL'='purple',
+                       'LOF'='yellow green',
+                       'INV_SPAN'='dark red',
+                       'UTR'='dark green',
+                       'INTRONIC'='gray',
+                       'INTERGENIC'='black')
 
-data_egene_target_90$TAG <- paste(data_egene_target_90$SVID, 
-                                  data_egene_target_90$ID, 
-                                  data_egene_target_90$EnsemID, 
-                                  data_egene_target_90$Tissue, 
-                                  sep = '-')
-data_pairs_target_90$TAG <- paste(data_pairs_target_90$SVID, data_pairs_target_90$ID, data_pairs_target_90$EnsemID, data_pairs_target_90$Tissue, sep = '-')
-data_pairs_target_90 <- data_pairs_target_90[(!is.na(data_pairs_target_90$CPP)&data_pairs_target_90$CPP>=0.1) | data_pairs_target_90$TAG%in%data_egene_target_90$TAG,]
-
-###################### target-24 ######################
-data_egene_target_24 <- data_egene_target_90[data_egene_target_90$SVID%in%data_sv_adapt_introgression$SVID,]
-data_pairs_target_24 <- data_pairs_target_90[data_pairs_target_90$SVID%in%data_sv_adapt_introgression$SVID,]
-
-data_pairs_target_90$GROUP <- 'Others'
-data_pairs_target_90[data_pairs_target_90$SVID%in%data_pairs_target_24$SVID,]$GROUP <- 'Adaptive Introgression candidates'
-
-data_egene_target_90$GROUP <- 'Others'
-data_egene_target_90[data_egene_target_90$SVID%in%data_egene_target_24$SVID,]$GROUP <- 'Adaptive Introgression candidates'
-
-
-
-library(topGO)
-library(clusterProfiler)
-library(AnnotationHub)
-library(org.Hs.eg.db)
-library('biomaRt')
-
-mart_PDLF <- useDataset("hsapiens_gene_ensembl", useMart("ensembl"))
-
-data_pairs_target_90$ensemble_id <- str_split_fixed(data_pairs_target_90$EnsemID, pattern = '[.]', n = 2)[,1]
-
-genelist <- getBM(filters= "ensembl_gene_id", 
-                  attributes= c("ensembl_gene_id", 
-                                "external_gene_name", 
-                                "entrezgene_id",
-                                "description"),
-                  values=data_pairs_target_90$ensemble_id,
-                  mart= mart_PDLF,
-                  verbose = FALSE)
-
-data_pairs_target_90 <- merge(x=data_pairs_target_90,y=genelist, by.x='ensemble_id', by.y='ensembl_gene_id', all.x=TRUE, all.y=FALSE)
-write.csv(data_pairs_target_90, file = '../data/result_genotypted/target-90/data_pairs_target_90.csv', quote = FALSE)
-
-###################### sv non-coding genomic features ######################
-path_tss_expression <- paste(path_data, '/annotations/GTEx_Analysis_2017-06-05_v8_RNASeQCv1.1.9_gene_median_tpm.gct', sep = '/')
-data_tss_expression <- read.table(path_tss_expression, header = TRUE, sep = '\t' , skip = 2)
-data_gene_annot <- data.frame(genes<-data_tss_expression$Description,Expression<-rowSums(data_tss_expression[,c(-1,-2)]))
-colnames(data_gene_annot) <- c('Genes', 'Expression')
-
-path_pli <- paste(path_data, '/annotations/20181217_GeneIntolerance.pLI-Zscore.annotations.tsv', sep = '/')
-data_tss_pli <- read.table(path_pli, header = TRUE, sep = '\t')
-colnames(data_tss_pli)[1] <- 'Genes'
-
-path_hi <- paste(path_data, '/annotations/20181218_HI.tsv', sep = '/')
-data_tss_hi <- read.table(path_hi, header = TRUE, sep = '\t')
-colnames(data_tss_hi)[1] <- 'Genes'
-
-path_cli <- paste(path_data, '/annotations/20181217_ClinGenAnnotations.tsv', sep = '/')
-data_tss_cli <- read.table(path_cli, header = TRUE, sep = '\t')[,c(1:2)]
-colnames(data_tss_cli)[1] <- 'Genes'
-
-data_gene_annot <-  merge(data_gene_annot, data_tss_pli, by='Genes', all.x=TRUE, all.y=TRUE)
-data_gene_annot <-  merge(data_gene_annot, data_tss_hi, by='Genes', all.x=TRUE, all.y=TRUE)
-data_gene_annot <-  merge(data_gene_annot, data_tss_cli, by='Genes', all.x=TRUE, all.y=TRUE)
-
-path_ctcf <- paste(path_data, '/annotations/ctcf.narrowPeak.sorted.cluster.bed', sep = '/')
-data_tss_ctcf <- read.table(path_ctcf, header = FALSE, sep = '\t', skip = 1)
-colnames(data_tss_ctcf) <- c('Chrom', 'POS', 'END', 'Cluster')
-data_ctcf_freq <- plyr::count(data_tss_ctcf,'Cluster')
-
-###################### sv control pairs ######################
-# refer_gc <- read.table(paste(path_data,'/stats/hg19.rand.norepeat.10k.gc.bed',sep = ''), header = FALSE)
-# colnames(refer_gc) <- c('chrom','start','end','length','GCcontent')
-source('funcs_load_data.R')
-path_sv_refer <- paste(path_data, 'backgounds/hg19.rand.exclude_svANDgap.sorted.svtk.annotsv.tsv', sep = '/')
-data_sv_refer <- func.load.svtk.annotsv.local.reference(path_sv_refer)
-data_sv_refer_all <-data_sv_refer$data_sv
-data_sv_refer_all$SVID.RAW <- str_split_fixed(data_sv_refer_all$SVID,pattern = '_rep',n = 2)[,1]
-data_sv_refer_all$SVID.REF <- str_split_fixed(data_sv_refer_all$SVID,pattern = '_rep',n = 2)[,2]
-
-
-# plot
-data_plot <- data_sv_details_all
-prefix_filename <- paste(path_data, 'plots/data_sv_all' , sep = '/')
-
+val_res = 300
+data_plot = data_sv_details_all
 
 ###################### SV locations (circos)  ######################
-
 library(circlize)
 karyo_plot <- as.data.frame(data_sv_details_all_karyo)
-# karyo_plot$seqnames <- paste('chr',as.character(karyo_plot$seqnames), sep = "")
 karyo_plot$SUPP <- as.integer(karyo_plot$SUPP)
 
 karyo_plot_BND <- karyo_plot[karyo_plot$SVTYPE=='TRA',]
@@ -296,36 +200,7 @@ pdf(file = paste(prefix_filename,'sv.circos','pdf',sep = '.'), width = 8, height
   group_major <- karyo_plot_BND$SUPP%in%seq(13,24)
   group_polymorphic <- karyo_plot_BND$SUPP%in%seq(2,12)
   group_singleton <- karyo_plot_BND$SUPP==1
-
 dev.off()
-
-###################### samples summary ######################
-
-df_sorted <- arrange(data_sample, id, Type) 
-df_cumsum <- ddply(data_sample, "id",
-                     transform, label_ypos=cumsum(Discovery))
-df_cumsum <- df_cumsum[order(df_cumsum$id),]
-pdf(file = paste(prefix_filename,'sv.samples.bar.acc','pdf',sep = '.'), width = 4, height = 3)
-ggplot(data=df_cumsum, aes(x=id, y=Discovery, fill=Type)) +
-  geom_bar(stat="identity") +
-  geom_text(aes(y=label_ypos, label=label_ypos), vjust=-0.5, 
-            color="black", size=1) +
-  theme_minimal()+
-  theme(legend.title=element_blank(),
-        legend.position=c(0.5,0.98),
-        legend.direction = 'horizontal',
-        legend.spacing.x = unit(0.1, 'cm'),
-        legend.key.size=unit(0.3, 'cm'),
-        legend.text = element_text(size = 6,face = "bold"),
-        axis.text.x = element_text(size = 6,face = "bold", angle = 60,vjust = 0.6),
-        axis.text.y = element_text(size = 6,face = "bold"),
-        axis.title.y = element_text(size = 6,face = "bold"),
-        axis.title.x.bottom = element_text(margin = margin(-15,0,0,0))) +
-  scale_fill_manual(values=c('dark gray','dark red')) + 
-  xlab('') + 
-  ylab("Discovery")
-dev.off()
-
 
 ###################### samples NGS location ######################
 library(maps)
@@ -347,13 +222,7 @@ pop <- data.frame(NAME, pop)
 colnames(pop) <- c('cName', 'pop')
 china_map_pop <- join(china_map_data, pop, type = "full")
 
-# ggplot(china_map_data, aes(x = long, y = lat, group = group, fill = pop)) +
-#   geom_path(color = 'grey40') +
-#   geom_polygon() +
-#   scale_fill_manual(values = rainbow(33), guide = F) +
-#   coord_map()
-# png(filename = paste(prefix_filename,'samples.map.png',sep = '.') , width = 1200, height = 1000, res = val_res)
-pdf(file = paste(prefix_filename,'samples.map','pdf',sep = '.'), width = 8, height = 6)
+pdf(file = paste(prefix_filename,'samples.map','pdf',sep = '/'), width = 8, height = 6)
 postscript(file = paste(prefix_filename,'samples.map','eps',sep = '.'), width = 8, height = 6)
 ggplot(china_map_pop, aes(x = long, y = lat, group = group, fill = pop)) +
   geom_polygon() +
@@ -374,11 +243,9 @@ df_cumsum <- ddply(df_sorted, "id",
                    transform, 
                    ypos=cumsum(Discovery) - 0.5*Discovery)
 
-pdf(file = paste(prefix_filename,'sv.samples.bar','pdf',sep = '.'), width = 4, height = 3)
+pdf(file = paste(prefix_filename,'sv.samples.bar','pdf',sep = '/'), width = 4, height = 3)
 ggplot(data=df_cumsum, aes(x=id, y=Discovery, fill = Type)) +
   geom_bar(stat="identity") +
-  # geom_text(aes(y=ypos, label=Discovery), vjust=1, 
-  #           color="white", size=1.6) +
   theme_minimal()+
   theme(legend.title=element_blank(),
         legend.direction = 'horizontal',
@@ -397,7 +264,7 @@ dev.off()
 
 ###################### telomere enrichment ######################
 
-pdf(file = paste(prefix_filename,'plot03_Svs_dist.gt.update','pdf',sep = '.'), width = 4, height = 3)
+pdf(file = paste(prefix_filename,'Svs_dist.gt.update','pdf',sep = '/'), width = 4, height = 3)
 ggplot(data = data_sv_dist[data_sv_dist$All!=0,],
        aes(x = Dist, y = All)) +
   geom_point(size = 0.05, color="blue") +
@@ -416,212 +283,10 @@ ggplot(data = data_sv_dist[data_sv_dist$All!=0,],
     axis.title.x = element_text(size = 6,face = "bold"))
 dev.off()
 
-tmp_data <- split(data_sv_dist,data_sv_dist$Dist)
-tmp_list <- lapply(tmp_data, function(x) colMeans(x[,c('All','Shared','Major','Polymorphic','Singleton')]))
-tmp_frame <- data.frame(t(data.frame(tmp_list)))
-
-
-tmp_frame$Group <- 'refer'
-tmp_frame[c(1:10),]$Group <- 'target'
-
-res_fc <- data.frame(SVID.REF=rep(seq(1000),5),LFC=rep(0,1000*5))
-res_fc$RepClass <- NA
-
-n_permu <- 1
-while (n_permu < 1001){
-  
-  if (n_permu == 1) {
-    freq_target <- colMeans(tmp_frame[tmp_frame$Group=='target',c('All','Shared','Major','Polymorphic','Singleton')])
-    freq_refer <- colMeans(tmp_frame[tmp_frame$Group=='refer',c('All','Shared','Major','Polymorphic','Singleton')])
-    
-  } else {
-    
-    index_target <- sample(x = seq(nrow(tmp_frame)), size = 10, replace = TRUE)
-    tmp_frame$GroupRandom <- 'refer'
-    tmp_frame[index_target,]$GroupRandom <- 'target'
-    
-    freq_target <- colMeans(tmp_frame[tmp_frame$GroupRandom=='target',c('All','Shared','Major','Polymorphic','Singleton')])
-    freq_refer <- colMeans(tmp_frame[tmp_frame$GroupRandom=='refer',c('All','Shared','Major','Polymorphic','Singleton')])
-  }
-  
-  # res_fc[res_fc$SVID.REF==n_permu,]$LFC <- log2(freq_target/freq_refer)
-  res_fc[res_fc$SVID.REF==n_permu,]$LFC <- freq_target/freq_refer
-  res_fc[res_fc$SVID.REF==n_permu,]$RepClass <- c('All','Shared','Major','Polymorphic','Singleton')
-  
-  n_permu <- n_permu + 1
-}
-
-data_tmp <- res_fc[order(res_fc$LFC, decreasing = TRUE),]
-for (repclass in c('All','Shared','Major','Polymorphic','Singleton')){
-  data_repclass_tmp <- data_tmp[data_tmp$RepClass==repclass,] 
-  rownames(data_repclass_tmp) <- seq(nrow(data_repclass_tmp))
-  fc <- data_repclass_tmp[data_repclass_tmp$SVID.REF==1,]$LFC
-  pval <- as.numeric(rownames(data_repclass_tmp[data_repclass_tmp$SVID.REF==1,]))/nrow(data_repclass_tmp)
-  if (pval > 0.5) {
-    pval <- 1-pval
-  }
-  print(paste(repclass,fc,pval))
-}
-
-plot_shared <- ggplot(data = data_sv_dist, aes(x = Dist, y = Shared)) +
-  geom_point(size = 0.2, color="blue") +
-  xlim(0, 150) +
-  # ylim(0, 250) +
-  ylab('SVs Per 500kbp') +
-  xlab('Shared') +
-  theme_minimal()+
-  theme(
-    axis.text.x = element_text(size = 10,face = "bold"),
-    axis.text.y = element_text(size = 10,face = "bold"),
-    axis.title.y = element_text(size = 10,face = "bold"),
-    axis.title.x = element_text(size = 10,face = "bold"))
-plot_major <- ggplot(data = data_sv_dist, aes(x = Dist, y = Major)) +
-  geom_point(size = 0.2, color="blue") +
-  xlim(0, 150) +
-  # ylim(0, 250) +
-  ylab('SVs Per 500kbp') +
-  xlab('Major') +
-  theme_minimal()+
-  theme(
-    axis.text.x = element_text(size = 10,face = "bold"),
-    axis.text.y = element_text(size = 10,face = "bold"),
-    axis.title.y = element_text(size = 10,face = "bold"),
-    axis.title.x = element_text(size = 10,face = "bold"))
-plot_Polymorphic <- ggplot(data = data_sv_dist, aes(x = Dist, y = Polymorphic)) +
-  geom_point(size = 0.2, color="blue") +
-  xlim(0, 150) +
-  # ylim(0, 250) +
-  ylab('SVs Per 500kbp') +
-  xlab('Polymorphic') +
-  theme_minimal()+
-  theme(
-    axis.text.x = element_text(size = 10,face = "bold"),
-    axis.text.y = element_text(size = 10,face = "bold"),
-    axis.title.y = element_text(size = 10,face = "bold"),
-    axis.title.x = element_text(size = 10,face = "bold"))
-plot_Singleton <- ggplot(data = data_sv_dist, aes(x = Dist, y = Singleton)) +
-  geom_point(size = 0.2, color="blue") +
-  xlim(0, 150) +
-  # ylim(0, 250) +
-  ylab('SVs Per 500kbp') +
-  xlab('Singleton') +
-  theme_minimal()+
-  theme(
-    axis.text.x = element_text(size = 10,face = "bold"),
-    axis.text.y = element_text(size = 10,face = "bold"),
-    axis.title.y = element_text(size = 10,face = "bold"),
-    axis.title.x = element_text(size = 10,face = "bold"))
-# tiff(filename = 'plot04_Svs_dist.all.gt.update.tiff', width = 2400, height = 2000, res = val_res)
-# png(filename = paste(prefix_filename,'plot04_Svs_dist.all.gt.update.png',sep = '.'), width = 2400, height = 2000, res = val_res)
-pdf(file = paste(prefix_filename,'plot04_Svs_dist.all.gt.update','pdf',sep = '.'), width = 8, height = 6)
-multiplot(plot_shared, plot_major, plot_Polymorphic, plot_Singleton, cols=2)
-dev.off()
-
-
-
-# config_color_repeat <- data.frame(RepClass=c('Low_complexity', 'Simple_repeat', 'Satellite','SINE','LINE','LTR','DNA','RNA','RC','Other','None'),
-                                  # Color=c('light blue','blue','dark blue', 'green', 'yellow green','dark green','dark red','purple','yellow','black','gray'))
-
-config_color_repeat <- c(
-  'Low_complexity'='light blue', 
-  'Simple_repeat'='blue',
-  'Satellite'='dark blue',
-  'SINE'='green',
-  'LINE'='yellow green',
-  'LTR'='dark green',
-  'DNA'='dark red',
-  'RNA'='purple',
-  'RC'='yellow',
-  'None'='gray',
-  'Other'='darkgray')
-
-config_color_svtype <- c('DEL'='dark red', 
-                         'INS'='purple', 
-                         'DUP'='blue', 
-                         'INV'='dark green', 
-                         'TRA'='light blue')
-
-config_color_group_supp <- c('Singleton'='light blue', 
-                             'Polymorphic'='blue', 
-                             'Major'='purple', 
-                             'Shared'='dark red')
-
-config_color_group_pop <- c('All'='black',
-                            'Shared'='gray', 
-                            'AFR'='dark red',
-                            'HAN'='dark green', 
-                            'TIB'='dark blue',
-                            'HANN'='green', 
-                            'HANS'='dark green',
-                            'TIBG'='blue', 
-                            'TIBL'='dodger blue')
-
-config_color_group_supp_han <- c('No Support'='gray',
-                                 'Singleton'='light blue', 
-                                 'Polymorphic'='blue', 
-                                 'Major'='purple',
-                                 'Shared'='dark red')
-
-# config_color_group_len <- data.frame(GROUP_LEN=c('0-1k',    '1k-20k', 'above 20k'),
-                                     # Color=c('light blue', 'purple','dark red'))
-config_color_group_len <- c('0-100bp'='dark red',
-                            '100bp-250bp'='purple',
-                            '250bp-500bp'='blue',
-                            '500bp-1kb'='light blue',
-                            '50bp-1kb'='dark red',    
-                            '1kb-10kb'='purple', 
-                            '10kb-100kb'='blue', 
-                            '100kb-1Mb'='dark green', 
-                            'above 1Mb'='light blue')
-
-config_color_database <- c('1000Genome'='dark red', 
-                           'DDD'='purple',
-                           'DGV'='blue',
-                           'GnomAD'='dark green',
-                           'IMH'='light blue',
-                           'None'='gray')
-
-config_color_gene <- c('COPY_GAIN'='blue',
-                       'DUP_PARTIAL'='purple',
-                       'LOF'='yellow green',
-                       'INV_SPAN'='dark red',
-                       'UTR'='dark green',
-                       'INTRONIC'='gray',
-                       'INTERGENIC'='black')
-
-val_res = 300
-
-
-
-###################### SV & SUPP ######################
-data_sv_group <- data_plot
-data_sv_group$SUPP <- factor(data_sv_group$SUPP)
-pdf(file = paste(prefix_filename,'sv.supp','pdf',sep = '.'), width = 3, height = 3)
-ggplot(data_sv_group, aes(SUPP, fill=GROUP_SUPP)) + 
-  geom_bar(position = 'dodge') + 
-  # coord_flip() + 
-  theme(legend.title=element_blank(),
-        legend.position="bottom",
-        panel.border = element_blank(),
-        panel.grid = element_blank(),
-        panel.background = element_blank(),
-        legend.spacing.x = unit(0.1, 'cm'),
-        legend.key.size=unit(0.5, 'cm'),
-        legend.text = element_text(size = 6,face = "bold"),
-        axis.text.x = element_text(size = 6,face = "bold", angle = 45),
-        axis.text.y = element_text(size = 6,face = "bold"),
-        axis.title.y = element_text(size = 6,face = "bold"),
-        axis.title.x.bottom = element_text(margin = margin(-20,0,0,0))) +
-  scale_fill_manual(values=config_color_group_supp) + 
-  xlab("") + 
-  ylab("Discovery") + 
-  geom_text(aes(label = ..count..), stat= "count", size=0.8, vjust=1.6, color='white', fontface="bold")
-dev.off()
-
 ###################### SV & GROUP_SUPP ######################
 data_sv_group <- plyr::count(data_plot,'GROUP_SUPP')
 data_sv_group$GROUP_SUPP <- factor(data_sv_group$GROUP_SUPP)
-pdf(file = paste(prefix_filename,'sv.group_supp.pie','pdf',sep = '.'), width = 3, height = 3)
+pdf(file = paste(prefix_filename,'sv.group_supp.pie','pdf',sep = '/'), width = 3, height = 3)
 ggplot(data_sv_group, aes(x="",y=freq,fill=GROUP_SUPP)) + 
   geom_bar(width=1,stat="identity") + coord_polar("y",start=0) + 
   geom_text(aes(y=freq/4+c(0,cumsum(freq)[-length(freq)])), 
@@ -645,33 +310,8 @@ scale_fill_manual(values=config_color_group_supp) +
         axis.title.y = element_blank())
 dev.off()
 
-df.new<-ddply(data_plot,.(SVTYPE),plyr::summarise,
-              prop=prop.table(table(GROUP_SUPP)),
-              SUPP=names(table(GROUP_SUPP)))
-df.new$SUPP <- factor(df.new$SUPP, levels = c('Singleton', 'Polymorphic', 'Major', 'Shared'))
-pdf(file = paste(prefix_filename,'sv.group_supp.bar','pdf',sep = '.'), width = 3, height = 3)
-ggplot(df.new, aes(SUPP, prop, fill=SVTYPE)) + 
-  geom_bar(stat="identity",position = 'dodge') + 
-  theme_minimal() +
-  theme(legend.title=element_blank(),
-        legend.position="bottom",
-        panel.border = element_blank(),
-        panel.grid = element_blank(),
-        panel.background = element_blank(),
-        legend.spacing.x = unit(0.1, 'cm'),
-        legend.key.size=unit(0.3, 'cm'),
-        legend.text = element_text(size = 6,face = "bold"),
-        axis.text.x = element_text(size = 6,face = "bold"),
-        axis.text.y = element_text(size = 6,face = "bold"),
-        axis.title.y = element_text(size = 6,face = "bold"),
-        axis.title.x.bottom = element_text(margin = margin(-20,0,0,0))) +
-  scale_fill_manual(values=config_color_svtype) + 
-  xlab("") + 
-  ylab("Prop")
-dev.off()
-
 ###################### SVLEN ######################
-pdf(file = paste(prefix_filename,'svlen.freqploy','pdf',sep = '.'), width = 4, height = 3)
+pdf(file = paste(prefix_filename,'svlen.freqploy','pdf',sep = '、'), width = 4, height = 3)
 ggplot(data=data_plot[data_plot$SVTYPE!='TRA',], aes(x=SVLEN, color = SVTYPE)) +
   geom_freqpoly(binwidth=1/5, size=0.8) +  
   scale_x_continuous(trans = 'log10',
@@ -698,103 +338,12 @@ ggplot(data=data_plot[data_plot$SVTYPE!='TRA',], aes(x=SVLEN, color = SVTYPE)) +
 dev.off()
 
 ###################### SVLEN & GROUP_SUPP ######################
-log100_trans <- function(){
-  trans_new(name = 'log100', transform = function(x) log(x,base = 100),
-            inverse = function(x) 100^x)
-}
-log1000_trans <- function(){
-  trans_new(name = 'log1000', transform = function(x) log(x,base = 1000),
-            inverse = function(x) 1000^x)
-}
-
-pdf(file = paste(prefix_filename,'svlen.group_supp.boxplot','pdf',sep = '.'), width = 3, height = 3)
-ggplot(data_plot, aes(x=GROUP_SUPP, y=SVLEN,group=GROUP_SUPP)) + 
-  geom_boxplot(aes(fill=GROUP_SUPP),outlier.size = 0.05,lwd=0.5) + 
-  scale_y_continuous(trans = 'log1000', 
-                     breaks = c(100,1000,10000,100000,1000000,10000000,100000000),
-                     labels = c('100bp','1kb','10kb','100kb','1Mb','10Mb','100Mb'), 
-                     limits = c(50,100000000))+
-  theme_minimal()+
-  theme(legend.title=element_blank(),
-        legend.position='bottom',
-        # panel.border = element_blank(),
-        # panel.grid = element_blank(),
-        # panel.background = element_blank(),
-        legend.spacing.x = unit(0.1, 'cm'),
-        legend.key.size=unit(0.3, 'cm'),
-        legend.text = element_text(size = 6,face = "bold"),
-        axis.text.x = element_text(size = 6,face = "bold"),
-        axis.text.y = element_text(size = 6,face = "bold"),
-        axis.title.y = element_text(size = 6,face = "bold"),
-        axis.title.x = element_text(size = 6,face = "bold"),
-        axis.title.x.bottom = element_text(margin = margin(-10,0,0,0))) +
-  scale_fill_manual(values=config_color_group_supp) + 
-  xlab('') + 
-  ylab("SVLEN")
-dev.off()
-
-pdf(file = paste(prefix_filename,'svlen.group_supp.acc','pdf',sep = '.'), width = 3, height = 3)
-ggplot(data_plot, aes(SVLEN, colour=GROUP_SUPP))+ 
-  stat_ecdf(size=0.8) + 
-  scale_x_continuous(trans = 'log100', 
-                     breaks = c(100,1000,10000,100000,1000000,10000000,100000000),
-                     labels = c('100bp','1kb','10kb','100kb','1Mb','10Mb','100Mb'), 
-                     limits = c(50,100000000)) + 
-  scale_y_continuous(breaks = c(0,0.25,0.5,0.75,1),
-                     labels = c('0','25%','50%','75%','100%')) + 
-  theme_minimal()+
-  theme(legend.title=element_blank(),
-        legend.position='bottom',
-        # panel.border = element_blank(),
-        # panel.grid = element_blank(),
-        # panel.background = element_blank(),
-        legend.spacing.x = unit(0.1, 'cm'),
-        legend.key.size=unit(0.3, 'cm'),
-        legend.text = element_text(size = 6,face = "bold"),
-        axis.text.x = element_text(size = 6,face = "bold"),
-        axis.text.y = element_text(size = 6,face = "bold"),
-        axis.title.y = element_text(size = 6,face = "bold"),
-        axis.title.x = element_text(size = 6,face = "bold"),
-        axis.title.x.bottom = element_text(margin = margin(-10,0,0,0))) +
-  scale_fill_manual(values=config_color_group_supp) + 
-  xlab('') + 
-  ylab("")
-dev.off()
-
-df.new<-ddply(data_plot,.(GROUP_SUPP),plyr::summarise,
-              prop=prop.table(table(GROUP_LEN)),
-              GROUP_LEN=names(table(GROUP_LEN)))
-df.new$GROUP_LEN <- factor(df.new$GROUP_LEN, 
-                           levels = c('50bp-1kb',    '1kb-10kb', '10kb-100kb', '100kb-1Mb', 'above 1Mb'))
-pdf(file = paste(prefix_filename,'svlen.group_supp.prop','pdf',sep = '.'), width = 4, height = 3)
-ggplot(df.new, aes(GROUP_LEN, prop, fill=GROUP_SUPP)) + 
-  geom_bar(stat="identity",position = 'dodge') + 
-  theme_minimal()+
-  theme(legend.title=element_blank(),
-        legend.position=c(0.8,0.8),
-        legend.direction = 'vertical',
-        # panel.border = element_blank(),
-        # panel.grid = element_blank(),
-        # panel.background = element_blank(),
-        legend.spacing.x = unit(0.1, 'cm'),
-        legend.key.size=unit(0.3, 'cm'),
-        legend.text = element_text(size = 6,face = "bold"),
-        axis.text.x = element_text(size = 6,face = "bold"),
-        axis.text.y = element_text(size = 6,face = "bold"),
-        axis.title.y = element_text(size = 6,face = "bold")) +
-  scale_fill_manual(values=config_color_group_supp) + 
-  xlab("") + 
-  ylab("Prop")
-dev.off()
-
 data_sv_group <- plyr::count(data_plot,c('GROUP_LEN','GROUP_SUPP'))
 data_sv_group$label <- 0
 
 for (type_sv in levels(data_sv_group$GROUP_LEN)){
   data_sv_group[data_sv_group$GROUP_LEN==type_sv,]$label <- sum(data_sv_group[data_sv_group$GROUP_LEN==type_sv,]$freq)
 }
-# data_sv_group$GROUP_LEN <- factor(as.character(data_sv_group$GROUP_LEN), levels = '50bp-1kb', '1kb-10kb', '10kb-100kb', '100kb-1Mb', 'above 1Mb')
-# png(filename = paste(prefix_filename,'svlen.group_supp.bar.png',sep = '.'), width = 1200, height = 1000, res = val_res)
 pdf(file = paste(prefix_filename,'svlen.group_supp.bar','pdf',sep = '.'), width = 3, height = 3)
 ggplot(data_sv_group, aes(x = GROUP_LEN, y = freq, fill = GROUP_SUPP)) + 
   geom_bar(position = "fill",stat = "identity") +
@@ -814,150 +363,6 @@ ggplot(data_sv_group, aes(x = GROUP_LEN, y = freq, fill = GROUP_SUPP)) +
   xlab("") + 
   ylab("") +
   geom_text(aes(label = label, y= ..prop..), stat= "count", hjust = -0.1, size=1)
-dev.off()
-
-data_sv_group <- plyr::count(data_plot,c('GROUP_LEN','GROUP_SUPP'))
-data_sv_group$label <- 0
-
-for (type_sv in levels(data_sv_group$GROUP_SUPP)){
-  data_sv_group[data_sv_group$GROUP_SUPP==type_sv,]$label <- sum(data_sv_group[data_sv_group$GROUP_SUPP==type_sv,]$freq)
-}
-# png(filename = paste(prefix_filename,'group_supp.group_len.bar.png',sep = '.'), width = 1200, height = 1000, res = val_res)
-pdf(file = paste(prefix_filename,'group_supp.group_len.bar','pdf',sep = '.'), width = 8, height = 6)
-ggplot(data_sv_group, aes(x = GROUP_SUPP, y = freq, fill = forcats::fct_rev(GROUP_LEN))) + 
-  geom_bar(position = "fill",stat = "identity") +
-  scale_y_continuous(labels = scales::percent_format(), expand = expand_scale(mult = .1)) + 
-  coord_flip() + 
-  theme_minimal()+
-  theme(legend.title=element_blank(),
-        legend.position="bottom",
-        legend.spacing.x = unit(0.1, 'cm'),
-        legend.key.size=unit(0.5, 'cm'),
-        legend.text = element_text(size = 5,face = "bold"),
-        axis.text.x = element_text(size = 10,face = "bold"),
-        axis.text.y = element_text(size = 10,face = "bold"),
-        axis.title.y = element_text(size = 10,face = "bold"),
-        axis.title.x.bottom = element_text(margin = margin(-10,0,0,0))) +
-  scale_fill_manual(values=config_color_group_len) + 
-  xlab("") + 
-  ylab("") +
-  geom_text(aes(label = label, y= ..prop..), stat= "count", hjust = -0.1, size=2)
-dev.off()
-
-###################### SVLEN & SVTYPE ######################
-data_sv_group <- subset(data_plot,SVTYPE!='TRA')
-# png(filename = paste(prefix_filename,'svlen.svtype.boxplot.png',sep = '.'), width = 1200, height = 1200, res = val_res)
-pdf(file = paste(prefix_filename,'svlen.svtype.boxplot','pdf',sep = '.'), width = 8, height = 6)
-ggplot(data_sv_group, aes(x=SVTYPE, y=SVLEN,group=SVTYPE)) + 
-  geom_boxplot(aes(fill=SVTYPE),outlier.size = 0.1) + 
-  scale_y_continuous(trans = 'log1000', 
-                     breaks = c(100,1000,10000,100000,1000000,10000000,100000000),
-                     labels = c('100bp','1kb','10kb','100kb','1Mb','10Mb','100Mb'), 
-                     limits = c(50,100000000))+
-  theme_minimal()+
-  theme(legend.title=element_blank(),
-        legend.position='bottom',
-        # panel.border = element_blank(),
-        # panel.grid = element_blank(),
-        # panel.background = element_blank(),
-        legend.spacing.x = unit(0.1, 'cm'),
-        legend.key.size=unit(0.5, 'cm'),
-        legend.text = element_text(size = 10,face = "bold"),
-        axis.text.x = element_text(size = 10,face = "bold"),
-        axis.text.y = element_text(size = 10,face = "bold"),
-        axis.title.y = element_text(size = 10,face = "bold"),
-        axis.title.x = element_text(size = 10,face = "bold"),
-        axis.title.x.bottom = element_text(margin = margin(-10,0,0,0))) +
-  scale_fill_manual(values=config_color_svtype) + 
-  xlab('') + 
-  ylab("SVLEN")
-dev.off()
-
-# png(filename = paste(prefix_filename,'svlen.svtype.acc.png',sep = '.'), width = 1200, height = 1000, res = val_res)
-pdf(file = paste(prefix_filename,'svlen.svtype.acc','pdf',sep = '.'), width = 8, height = 6)
-ggplot(data_plot, aes(SVLEN, colour=SVTYPE)) + 
-  stat_ecdf(size=0.8) + 
-  scale_x_continuous(trans = 'log100', 
-                     breaks = c(100,1000,10000,100000,1000000,10000000,100000000),
-                     labels = c('100bp','1kb','10kb','100kb','1Mb','10Mb','100Mb'), 
-                     limits = c(50,100000000)) + 
-  scale_y_continuous(breaks = c(0,0.25,0.5,0.75,1),
-                     labels = c('0','25%','50%','75%','100%')) + 
-  theme(legend.title=element_blank(),
-        legend.position='bottom',
-        # panel.border = element_blank(),
-        # panel.grid = element_blank(),
-        # panel.background = element_blank(),
-        legend.spacing.x = unit(0.1, 'cm'),
-        legend.key.size=unit(0.5, 'cm'),
-        legend.text = element_text(size = 10,face = "bold"),
-        axis.text.x = element_text(size = 10,face = "bold"),
-        axis.text.y = element_text(size = 10,face = "bold"),
-        axis.title.y = element_text(size = 10,face = "bold"),
-        axis.title.x = element_text(size = 10,face = "bold"),
-        axis.title.x.bottom = element_text(margin = margin(-10,0,0,0))) +
-  scale_fill_manual(values=config_color_svtype) + 
-  xlab('') + 
-  ylab("")
-dev.off()
-
-df.new<-ddply(data_sv_group,.(SVTYPE),plyr::summarise,
-              prop=prop.table(table(GROUP_LEN)),
-              GROUP_LEN=names(table(GROUP_LEN)))
-df.new$GROUP_LEN <- factor(df.new$GROUP_LEN, levels = c('50bp-1kb', '1kb-10kb', '10kb-100kb', '100kb-1Mb', 'above 1Mb'))
-# png(filename = paste(prefix_filename,'svlen.svtype.prop.png',sep = '.'), width = 1200, height = 1000, res = val_res)
-pdf(file = paste(prefix_filename,'svlen.svtype.prop','pdf',sep = '.'), width = 8, height = 6)
-ggplot(df.new, aes(GROUP_LEN, prop, fill=SVTYPE)) + 
-  geom_bar(stat="identity",position = 'dodge') + 
-  theme_minimal()+
-  theme(legend.title=element_blank(),
-        legend.position="bottom",
-        panel.border = element_blank(),
-        panel.grid = element_blank(),
-        panel.background = element_blank(),
-        legend.spacing.x = unit(0.1, 'cm'),
-        legend.key.size=unit(0.5, 'cm'),
-        legend.text = element_text(size = 10,face = "bold"),
-        axis.text.x = element_text(size = 10,face = "bold"),
-        axis.text.y = element_text(size = 10,face = "bold"),
-        axis.title.y = element_text(size = 10,face = "bold"),
-        axis.title.x.bottom = element_text(margin = margin(-20,0,0,0))) +
-  scale_fill_manual(values=config_color_svtype) + 
-  xlab("") + 
-  ylab("Prop")
-dev.off()
-
-data_sv_len_group <- plyr::count(data_plot, c('SVTYPE', 'GROUP_LEN'))
-data_sv_len_group <- subset(data_sv_len_group, SVTYPE!='TRA')
-data_sv_len_group$SVTYPE <- factor(data_sv_len_group$SVTYPE)
-data_sv_len_group$label <- 0
-
-for (type_sv in levels(data_sv_len_group$SVTYPE)){
-  data_sv_len_group[data_sv_len_group$SVTYPE==type_sv,]$label <- sum(data_sv_len_group[data_sv_len_group$SVTYPE==type_sv,]$freq)
-}
-data_sv_len_group$SVTYPE <- factor(data_sv_len_group$SVTYPE, levels = c( 'DEL', 'INS', 'DUP', 'INV'))
-
-# tiff(filename = paste(prefix_filename,'sv_len.tiff',sep = '.'), width = 1200, height = 1000, res = 300)
-# png(filename = paste(prefix_filename,'svtype.svlen.bar.png',sep = '.'), width = 1200, height = 1000, res = val_res)
-pdf(file = paste(prefix_filename,'svtype.svlen.bar','pdf',sep = '.'), width = 8, height = 6)
-  ggplot(data_sv_len_group, aes(x = SVTYPE, y = freq, fill = forcats::fct_rev(GROUP_LEN))) +
-    geom_bar(position = "fill",stat = "identity") +
-    scale_y_continuous(labels = scales::percent_format(), expand = expand_scale(mult = .1)) +
-    coord_flip() +
-    theme_minimal()+
-    theme(legend.title=element_blank(),
-          legend.position="bottom",
-          legend.spacing.x = unit(0.1, 'cm'),
-          legend.key.size=unit(0.5, 'cm'),
-          legend.text = element_text(size = 5,face = "bold"),
-          axis.text.x = element_text(size = 10,face = "bold"),
-          axis.text.y = element_text(size = 10,face = "bold"),
-          axis.title.y = element_text(size = 10,face = "bold"),
-          axis.title.x.bottom = element_text(margin = margin(-20,0,0,0))) +
-    scale_fill_manual(values=config_color_group_len) +
-    xlab("") +
-    ylab("") +
-    geom_text(aes(label = label, y= ..prop..), stat= "count", hjust = -0.1, size=1.8)
 dev.off()
 
 ###################### SVTYPE & GROUP_SUPP ######################
