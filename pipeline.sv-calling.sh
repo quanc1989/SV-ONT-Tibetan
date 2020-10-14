@@ -45,6 +45,7 @@ if [ ! -d $path_save ];then
 
 	mkdir $path_save/result_denovo
 	mkdir $path_save/result_genotyped
+fi
 
 for sampleID in ${arrray_sample[@]};do
 	
