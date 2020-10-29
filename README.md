@@ -35,130 +35,185 @@ In the bash file ```pipeline.sv-calling.sh```, we use sample data to demonstrate
 
     ![模型示意图](pipeline-sv-calling.png)
 
+
+-------
+
 ## Visualization for chracteristics of SVs
 
 ### Script: pipeline.plot.R
 
 ### Examples: ###
 
-> SV distribution
+* SV distribution
 
-```
-library(circlize)
-karyo_plot <- as.data.frame(data_sv_details_all_karyo)
-karyo_plot$SUPP <- as.integer(karyo_plot$SUPP)
+    ```R
+    library(circlize)
+    karyo_plot <- as.data.frame(data_sv_details_all_karyo)
+    karyo_plot$SUPP <- as.integer(karyo_plot$SUPP)
+        
+    karyo_plot_BND <- karyo_plot[karyo_plot$SVTYPE=='TRA',]
+    karyo_plot_BND$seqnames <- paste('chr',karyo_plot_BND$seqnames, sep = '')
+    karyo_plot_BND_link <- karyo_plot_BND[,c('CHR2','END','END')]
+    colnames(karyo_plot_BND_link) <- c('seqnames', 'start', 'end')
+    karyo_plot_BND_link$seqnames <- paste('chr', as.character(karyo_plot_BND_link$seqnames), sep = "")
+    karyo_plot_BND_link$start <- as.integer(karyo_plot_BND_link$start)
+    karyo_plot_BND_link$end <- as.integer(karyo_plot_BND_link$end)
+        
+    array_seqnames <- paste('chr', karyo_plot$seqnames,sep = '')
+        
+    circos.initializeWithIdeogram(species = 'hg19')
+        
+    group_shared <- karyo_plot$SUPP==25
+    group_major <- karyo_plot$SUPP%in%seq(13,24)
+    group_polymorphic <- karyo_plot$SUPP%in%seq(2,12)
+    group_singleton <- karyo_plot$SUPP==1
+        
+    circos.trackHist(factors=array_seqnames, 
+                   track.height = 0.1,
+                   x=karyo_plot$start,col = "#999999", border = '#999999', 
+                   bg.border = NA, bin.size = 500000)
+    circos.trackHist(factors=array_seqnames[group_shared], 
+                   track.height = 0.1, 
+                   x=karyo_plot[group_shared,]$start,col = "red", border = 'red', 
+                   bg.border = NA,bin.size = 500000)
+    circos.trackHist(factors=array_seqnames[group_major], track.height = 0.1, x=karyo_plot[group_major,]$start,col = "purple", border = "purple",bg.border = NA,bin.size = 500000)
+    circos.trackHist(factors=array_seqnames[group_polymorphic], track.height = 0.1, x=karyo_plot[group_polymorphic,]$start,col = "blue",border = "blue",bg.border = NA,bin.size = 500000)
+    circos.trackHist(factors=array_seqnames[group_singleton], track.height = 0.1, x=karyo_plot[group_singleton,]$start,col = "light blue",border = "light blue",bg.border = NA,bin.size = 500000)
+    ```
     
-karyo_plot_BND <- karyo_plot[karyo_plot$SVTYPE=='TRA',]
-karyo_plot_BND$seqnames <- paste('chr',karyo_plot_BND$seqnames, sep = '')
-karyo_plot_BND_link <- karyo_plot_BND[,c('CHR2','END','END')]
-colnames(karyo_plot_BND_link) <- c('seqnames', 'start', 'end')
-karyo_plot_BND_link$seqnames <- paste('chr', as.character(karyo_plot_BND_link$seqnames), sep = "")
-karyo_plot_BND_link$start <- as.integer(karyo_plot_BND_link$start)
-karyo_plot_BND_link$end <- as.integer(karyo_plot_BND_link$end)
+    ![SV distribution](plots/sv.circos.png)
+* Sample Distribution for NGS data
+    ```R
+    library(maps)
+    library(mapdata)
+    library(maptools);
+    china_map=readShapePoly('china-province-border-data/bou2_4p.shp');
+    china_map@data$cName <- iconv(china_map@data$NAME, from = "GBK")
     
-array_seqnames <- paste('chr', karyo_plot$seqnames,sep = '')
+    x <- china_map@data 
+    xs <- data.frame(x,id=seq(0:924)-1)
+    china_map1 <- fortify(china_map)
+    china_map_data <- join(china_map1, xs, type = "full", )
     
-circos.initializeWithIdeogram(species = 'hg19')
+    tmp <- summary(factor(data_samples_info[data_samples_info$Platform=='NGS',]$cLocation))
     
-group_shared <- karyo_plot$SUPP==25
-group_major <- karyo_plot$SUPP%in%seq(13,24)
-group_polymorphic <- karyo_plot$SUPP%in%seq(2,12)
-group_singleton <- karyo_plot$SUPP==1
+    NAME <- names(tmp)
+    pop <- tmp
+    pop <- data.frame(NAME, pop)
+    colnames(pop) <- c('cName', 'pop')
+    china_map_pop <- join(china_map_data, pop, type = "full")
     
-circos.trackHist(factors=array_seqnames, 
-               track.height = 0.1,
-               x=karyo_plot$start,col = "#999999", border = '#999999', 
-               bg.border = NA, bin.size = 500000)
-circos.trackHist(factors=array_seqnames[group_shared], 
-               track.height = 0.1, 
-               x=karyo_plot[group_shared,]$start,col = "red", border = 'red', 
-               bg.border = NA,bin.size = 500000)
-circos.trackHist(factors=array_seqnames[group_major], track.height = 0.1, x=karyo_plot[group_major,]$start,col = "purple", border = "purple",bg.border = NA,bin.size = 500000)
-circos.trackHist(factors=array_seqnames[group_polymorphic], track.height = 0.1, x=karyo_plot[group_polymorphic,]$start,col = "blue",border = "blue",bg.border = NA,bin.size = 500000)
-circos.trackHist(factors=array_seqnames[group_singleton], track.height = 0.1, x=karyo_plot[group_singleton,]$start,col = "light blue",border = "light blue",bg.border = NA,bin.size = 500000)
+    ggplot(china_map_pop, aes(x = long, y = lat, group = group, fill = pop)) +
+      geom_polygon() +
+      geom_path(color = "grey40") +
+      coord_map() +
+      xlab('') + 
+      ylab("") + 
+      theme(legend.title=element_blank(),
+            legend.text = element_text(size = 8,face = "bold"),
+            axis.text.x = element_blank(),
+            axis.text.y = element_blank())
+    ```
+    ![SV distribution](plots/samples.map.png)
     
-group_shared <- karyo_plot_BND$SUPP==25
-group_major <- karyo_plot_BND$SUPP%in%seq(13,24)
-group_polymorphic <- karyo_plot_BND$SUPP%in%seq(2,12)
-group_singleton <- karyo_plot_BND$SUPP==1
-```
+* Sample Distribution for NGS data
+    ```R
+    df_sorted <- arrange(data_sample_details_ONT, id, Type) 
+    df_cumsum <- ddply(df_sorted, "id",
+                       transform, 
+                       ypos=cumsum(Discovery) - 0.5*Discovery)
     
-![SV distribution](plots/sv.circos.png)
-#### Sample Distribution for NGS data ####
-```
-library(maps)
-library(mapdata)
-library(maptools);
-china_map=readShapePoly('china-province-border-data/bou2_4p.shp');
-china_map@data$cName <- iconv(china_map@data$NAME, from = "GBK")
+    ggplot(data=df_cumsum, aes(x=id, y=Discovery, fill = Type)) +
+      geom_bar(stat="identity") +
+      theme_minimal()+
+      theme(legend.title=element_blank(),
+            legend.direction = 'horizontal',
+            legend.position=c(0.5,0.98),
+            legend.spacing.x = unit(0.1, 'cm'),
+            legend.key.size=unit(0.3, 'cm'),
+            legend.text = element_text(size = 6,face = "bold"),
+            axis.text.x = element_text(size = 6,face = "bold", angle = 60, vjust = 0.6),
+            axis.text.y = element_text(size = 6,face = "bold"),
+            axis.title.y = element_text(size = 6,face = "bold"),
+            axis.title.x.bottom = element_text(margin = margin(-15,0,0,0))) +
+      scale_fill_manual(values=c('light blue', 'blue', 'purple','dark red')) + 
+      xlab("") + 
+      ylab("Discovery")
+    ```
+    ![SV distribution](plots/samples.bar.acc.png)
 
-x <- china_map@data                          #读取行政信息
-xs <- data.frame(x,id=seq(0:924)-1)          #含岛屿共925个形状
-china_map1 <- fortify(china_map)             #转化为数据框
-china_map_data <- join(china_map1, xs, type = "full", )       #合并两个数据框
-
-tmp <- summary(factor(data_samples_info[data_samples_info$Platform=='NGS',]$cLocation))
-
-NAME <- names(tmp)
-pop <- tmp
-pop <- data.frame(NAME, pop)
-colnames(pop) <- c('cName', 'pop')
-china_map_pop <- join(china_map_data, pop, type = "full")
-
-ggplot(china_map_pop, aes(x = long, y = lat, group = group, fill = pop)) +
-  geom_polygon() +
-  geom_path(color = "grey40") +
-  coord_map() +
-  xlab('') + 
-  ylab("") + 
-  theme(legend.title=element_blank(),
-        legend.text = element_text(size = 8,face = "bold"),
-        axis.text.x = element_blank(),
-        axis.text.y = element_blank())
-```
-#### Sample Distribution for NGS data ####
-```
-df_sorted <- arrange(data_sample_details_ONT, id, Type) 
-df_cumsum <- ddply(df_sorted, "id",
-                   transform, 
-                   ypos=cumsum(Discovery) - 0.5*Discovery)
-
-ggplot(data=df_cumsum, aes(x=id, y=Discovery, fill = Type)) +
-  geom_bar(stat="identity") +
-  theme_minimal()+
-  theme(legend.title=element_blank(),
+* telomere enrichment
+    ```R
+    ggplot(data = data_sv_dist[data_sv_dist$All!=0,],
+           aes(x = Dist, y = All)) +
+      geom_point(size = 0.05, color="blue") +
+      annotate("rect", fill = "dark gray", alpha = 0.5, 
+               xmin = 0, xmax = 5,
+               ymin = -Inf, ymax = Inf)+
+      xlim(0, 150) +
+      # ylim(0, 250) +
+      ylab('SVs Per 500kbp') +
+      xlab('Telomere Distance') +
+      theme_minimal()+
+      theme(
+        axis.text.x = element_text(size = 6,face = "bold"),
+        axis.text.y = element_text(size = 6,face = "bold"),
+        axis.title.y = element_text(size = 6,face = "bold"),
+        axis.title.x = element_text(size = 6,face = "bold"))
+    ```
+    ![SV distribution](plots/sv.dist.png)
+    
+* Group Support
+```R
+data_sv_group <- plyr::count(data_plot,'GROUP_SUPP')
+data_sv_group$GROUP_SUPP <- factor(data_sv_group$GROUP_SUPP)
+ggplot(data_sv_group, aes(x="",y=freq,fill=GROUP_SUPP)) + 
+  geom_bar(width=1,stat="identity") + coord_polar("y",start=0) + 
+  geom_text(aes(y=freq/4+c(0,cumsum(freq)[-length(freq)])), 
+            label=percent(data_sv_group$freq/sum(data_sv_group$freq)),
+            size=2,
+            color='white', 
+            fontface="bold") + 
+scale_fill_manual(values=config_color_group_supp) +
+  theme_minimal() + 
+  theme(legend.position = c(0.5,0),
         legend.direction = 'horizontal',
-        legend.position=c(0.5,0.98),
+        legend.spacing.x = unit(0.1, 'cm'),
+        legend.key.size=unit(0.3, 'cm'),
+        legend.title=element_blank(),
+        legend.text = element_text(size = 6,face = "bold"),
+        panel.border = element_blank(),
+        panel.grid = element_blank(),
+        axis.ticks = element_blank(),
+        axis.text = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank())
+```
+![SV distribution](plots/sv.group_supp.pie.png)
+* SV length
+```R
+ggplot(data=data_plot[data_plot$SVTYPE!='TRA',], aes(x=SVLEN, color = SVTYPE)) +
+  geom_freqpoly(binwidth=1/5, size=0.8) +  
+  scale_x_continuous(trans = 'log10',
+                     breaks=c(100,1000,10000,100000,1000000,10000000),
+                     labels =c('100bp','1kb','10kb','100kb','1Mb', '10Mb'),
+                     limits = c(50, 10000000)
+  ) + 
+  scale_y_continuous(trans = 'log10') + 
+  theme_minimal() +
+  theme(legend.title=element_blank(),
+        legend.position=c(0.9,0.9),
+        legend.direction = 'vertical',
         legend.spacing.x = unit(0.1, 'cm'),
         legend.key.size=unit(0.3, 'cm'),
         legend.text = element_text(size = 6,face = "bold"),
-        axis.text.x = element_text(size = 6,face = "bold", angle = 60, vjust = 0.6),
+        axis.text.x = element_text(size = 6,face = "bold"),
         axis.text.y = element_text(size = 6,face = "bold"),
         axis.title.y = element_text(size = 6,face = "bold"),
-        axis.title.x.bottom = element_text(margin = margin(-15,0,0,0))) +
-  scale_fill_manual(values=c('light blue', 'blue', 'purple','dark red')) + 
-  xlab("") + 
-  ylab("Discovery")
+        axis.title.x = element_text(size = 6,face = "bold"),
+        axis.title.x.bottom = element_text(margin = margin(-10,0,0,0))) + 
+  scale_fill_manual(values=config_color_svtype) + 
+  xlab('') + 
+  ylab("SV Count")
 ```
-
-#### telomere enrichment ####
-```
-ggplot(data = data_sv_dist[data_sv_dist$All!=0,],
-       aes(x = Dist, y = All)) +
-  geom_point(size = 0.05, color="blue") +
-  annotate("rect", fill = "dark gray", alpha = 0.5, 
-           xmin = 0, xmax = 5,
-           ymin = -Inf, ymax = Inf)+
-  xlim(0, 150) +
-  # ylim(0, 250) +
-  ylab('SVs Per 500kbp') +
-  xlab('Telomere Distance') +
-  theme_minimal()+
-  theme(
-    axis.text.x = element_text(size = 6,face = "bold"),
-    axis.text.y = element_text(size = 6,face = "bold"),
-    axis.title.y = element_text(size = 6,face = "bold"),
-    axis.title.x = element_text(size = 6,face = "bold"))
-```
-
-       
+![SV distribution](plots/sv.len.freqploy.png)
