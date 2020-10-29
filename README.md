@@ -39,15 +39,15 @@ In the bash file ```pipeline.sv-calling.sh```, we use sample data to demonstrate
 
 ### Script: pipeline.plot.R
 
-### Examples ###
+### Examples: ###
 
-#### SV distribution ####
+> SV distribution
 
 ```
 library(circlize)
 karyo_plot <- as.data.frame(data_sv_details_all_karyo)
 karyo_plot$SUPP <- as.integer(karyo_plot$SUPP)
-
+    
 karyo_plot_BND <- karyo_plot[karyo_plot$SVTYPE=='TRA',]
 karyo_plot_BND$seqnames <- paste('chr',karyo_plot_BND$seqnames, sep = '')
 karyo_plot_BND_link <- karyo_plot_BND[,c('CHR2','END','END')]
@@ -55,16 +55,16 @@ colnames(karyo_plot_BND_link) <- c('seqnames', 'start', 'end')
 karyo_plot_BND_link$seqnames <- paste('chr', as.character(karyo_plot_BND_link$seqnames), sep = "")
 karyo_plot_BND_link$start <- as.integer(karyo_plot_BND_link$start)
 karyo_plot_BND_link$end <- as.integer(karyo_plot_BND_link$end)
-
+    
 array_seqnames <- paste('chr', karyo_plot$seqnames,sep = '')
-
+    
 circos.initializeWithIdeogram(species = 'hg19')
-
+    
 group_shared <- karyo_plot$SUPP==25
 group_major <- karyo_plot$SUPP%in%seq(13,24)
 group_polymorphic <- karyo_plot$SUPP%in%seq(2,12)
 group_singleton <- karyo_plot$SUPP==1
-
+    
 circos.trackHist(factors=array_seqnames, 
                track.height = 0.1,
                x=karyo_plot$start,col = "#999999", border = '#999999', 
@@ -76,13 +76,14 @@ circos.trackHist(factors=array_seqnames[group_shared],
 circos.trackHist(factors=array_seqnames[group_major], track.height = 0.1, x=karyo_plot[group_major,]$start,col = "purple", border = "purple",bg.border = NA,bin.size = 500000)
 circos.trackHist(factors=array_seqnames[group_polymorphic], track.height = 0.1, x=karyo_plot[group_polymorphic,]$start,col = "blue",border = "blue",bg.border = NA,bin.size = 500000)
 circos.trackHist(factors=array_seqnames[group_singleton], track.height = 0.1, x=karyo_plot[group_singleton,]$start,col = "light blue",border = "light blue",bg.border = NA,bin.size = 500000)
-
+    
 group_shared <- karyo_plot_BND$SUPP==25
 group_major <- karyo_plot_BND$SUPP%in%seq(13,24)
 group_polymorphic <- karyo_plot_BND$SUPP%in%seq(2,12)
 group_singleton <- karyo_plot_BND$SUPP==1
-
 ```
+    
+![SV distribution](plots/sv.circos.png)
 #### Sample Distribution for NGS data ####
 ```
 library(maps)
@@ -160,6 +161,4 @@ ggplot(data = data_sv_dist[data_sv_dist$All!=0,],
     axis.title.x = element_text(size = 6,face = "bold"))
 ```
 
-
-![模型示意图](plots.png)
        
