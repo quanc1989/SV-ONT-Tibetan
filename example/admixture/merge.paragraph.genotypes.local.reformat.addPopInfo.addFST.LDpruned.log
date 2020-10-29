@@ -1,0 +1,48 @@
+PLINK v1.90b6.12 64-bit (28 Oct 2019)
+Options in effect:
+  --allow-extra-chr 0
+  --allow-no-sex
+  --file merge.paragraph.genotypes.local.reformat.addPopInfo.addFST.LDpruned
+  --make-bed
+  --out merge.paragraph.genotypes.local.reformat.addPopInfo.addFST.LDpruned
+  --recode 12
+
+Hostname: 3225
+Working directory: /data/quanc/project/20190410_nanopore_sv/data/6_genotyping_NGS_paragraph_update/admixture
+Start time: Thu Jan 16 16:30:00 2020
+
+Random number seed: 1579163400
+257568 MB RAM detected; reserving 128784 MB for main workspace.
+Allocated 72441 MB successfully, after larger attempt(s) failed.
+Scanning .ped file...
+Possibly irregular .ped line.  Restarting scan, assuming multichar alleles.
+.ped scan complete (for binary autoconversion).
+Performing single-pass .bed write (14590 variants, 191 people).
+--file:
+merge.paragraph.genotypes.local.reformat.addPopInfo.addFST.LDpruned-temporary.bed
++
+merge.paragraph.genotypes.local.reformat.addPopInfo.addFST.LDpruned-temporary.bim
++
+merge.paragraph.genotypes.local.reformat.addPopInfo.addFST.LDpruned-temporary.fam
+written.
+14590 variants loaded from .bim file.
+191 people (0 males, 0 females, 191 ambiguous) loaded from .fam.
+Ambiguous sex IDs written to
+merge.paragraph.genotypes.local.reformat.addPopInfo.addFST.LDpruned.nosex .
+Using 1 thread (no multithreaded calculations invoked).
+Before main variant filters, 191 founders and 0 nonfounders present.
+Calculating allele frequencies... done.
+Total genotyping rate is 0.997122.
+14590 variants and 191 people pass filters and QC.
+Note: No phenotypes present.
+--make-bed to
+merge.paragraph.genotypes.local.reformat.addPopInfo.addFST.LDpruned.bed +
+merge.paragraph.genotypes.local.reformat.addPopInfo.addFST.LDpruned.bim +
+merge.paragraph.genotypes.local.reformat.addPopInfo.addFST.LDpruned.fam ...
+done.
+--recode ped to
+merge.paragraph.genotypes.local.reformat.addPopInfo.addFST.LDpruned.ped +
+merge.paragraph.genotypes.local.reformat.addPopInfo.addFST.LDpruned.map ...
+done.
+
+End time: Thu Jan 16 16:30:00 2020

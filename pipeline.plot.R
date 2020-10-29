@@ -447,8 +447,6 @@ for (type_sv in levels(data_sv_group$RepClass)){
   data_sv_group[data_sv_group$RepClass==type_sv,]$label <- sum(data_sv_group[data_sv_group$RepClass==type_sv,]$freq)
 }
 
-# tiff(filename = paste(prefix_filename,'sv_summary.tiff',sep = '.'), width = 1200, height = 1000, res = 300)
-# png(filename = paste(prefix_filename,'breakpoints.repeat.group_supp.bar.png',sep = '.'), width = 1500, height = 2000, res = val_res)
 pdf(file = paste(prefix_filename,'breakpoints.repeat.group_supp.bar','pdf',sep = '.'), width = 8, height = 6)
 ggplot(data_sv_group, aes(x = RepClass, y = freq, fill = GROUP_SUPP)) + 
   geom_bar(position = "fill",stat = "identity") +
@@ -470,78 +468,13 @@ ggplot(data_sv_group, aes(x = RepClass, y = freq, fill = GROUP_SUPP)) +
   geom_text(aes(label = label, y= ..prop..), stat= "count", hjust = -0.1, size=2.5)
 dev.off()
 
+###################### Brepoints & Repeat & formation ###################################
+
 data_sv_repeat <- subset(data_tmp, SVTYPE%in%c('DEL','INS')&GROUP_LEN%in%c('50bp-1kb','1kb-10kb'))
-# data_sv_repeat <- subset(data_tmp, SVTYPE%in%c('DEL','INS')&SVLEN<=1000000&GROUP_SUPP%in%c('Major','Shared'))
+data_sv_repeat <- subset(data_tmp, SVTYPE%in%c('DEL','INS')&SVLEN<=1000000&GROUP_SUPP%in%c('Major','Shared'))
 data_sv_repeat_ins <- subset(data_sv_repeat, SVTYPE=='INS')
 data_sv_repeat_del <- subset(data_sv_repeat, SVTYPE=='DEL')
 
-
-data_sv_group <- plyr::count(data_sv_repeat,'RepClass')
-# png(filename = paste(prefix_filename,'breakpoints.repeat.pie.png',sep = '.'), width = 1200, height = 1000, res = val_res)
-pdf(file = paste(prefix_filename,'breakpoints.repeat.pie','pdf',sep = '.'), width = 4, height = 3)
-ggplot(data_sv_group, aes(x="",y=freq,fill=RepClass)) + 
-  geom_bar(width=1,stat="identity") + coord_polar("y",start=0) + 
-  geom_text(aes(y=freq/10+c(0,cumsum(freq)[-length(freq)])), 
-            label=percent(data_sv_group$freq/sum(data_sv_group$freq)),
-            size=2,
-            color='white', 
-            fontface="bold")+
-  scale_fill_manual(values=config_color_repeat) +
-  theme_minimal() + 
-  theme(legend.title=element_blank(),
-        legend.position="bottom",
-        legend.spacing.x = unit(0.1, 'cm'),
-        legend.key.size=unit(0.5, 'cm'),
-        legend.text = element_text(size = 6,face = "bold"),
-        panel.border = element_blank(),
-        panel.grid = element_blank(),
-        axis.ticks = element_blank(),
-        axis.text = element_blank(),
-        axis.title.x = element_blank(),
-        axis.title.y = element_blank())
-dev.off()
-
-data_sv_group <- plyr::count(data_sv_repeat_ins,'RepClass')
-# png(filename = paste(prefix_filename,'breakpoints.repeat.ins.pie.png',sep = '.'), width = 1200, height = 1000, res = val_res)
-pdf(file = paste(prefix_filename,'breakpoints.repeat.ins.pie','pdf',sep = '.'), width = 4, height = 3)
-  ggplot(data_sv_group, aes(x="",y=freq,fill=RepClass)) + 
-    geom_bar(width=1,stat="identity") + coord_polar("y",start=0) + 
-    scale_fill_manual(values=config_color_repeat) +
-    theme_minimal() + 
-    theme(legend.title=element_blank(),
-          legend.position="bottom",
-          legend.spacing.x = unit(0.1, 'cm'),
-          legend.key.size=unit(0.5, 'cm'),
-          legend.text = element_text(size = 6,face = "bold"),
-          panel.border = element_blank(),
-          panel.grid = element_blank(),
-          axis.ticks = element_blank(),
-          axis.text = element_blank(),
-          axis.title.x = element_blank(),
-          axis.title.y = element_blank())
-dev.off()
-
-data_sv_group <- plyr::count(data_sv_repeat_del,'RepClass')
-pdf(file = paste(prefix_filename,'breakpoints.repeat.del.pie','pdf',sep = '.'), width = 4, height = 3)
-# png(filename = paste(prefix_filename,'breakpoints.repeat.del.pie.png',sep = '.'), width = 1200, height = 1000, res = val_res)
-  ggplot(data_sv_group, aes(x="",y=freq,fill=RepClass)) + 
-    geom_bar(width=1,stat="identity") + coord_polar("y",start=0) + 
-    scale_fill_manual(values=config_color_repeat) +
-    theme_minimal() + 
-    theme(legend.title=element_blank(),
-          legend.position="bottom",
-          legend.spacing.x = unit(0.1, 'cm'),
-          legend.key.size=unit(0.5, 'cm'),
-          legend.text = element_text(size = 6,face = "bold"),
-          panel.border = element_blank(),
-          panel.grid = element_blank(),
-          axis.ticks = element_blank(),
-          axis.text = element_blank(),
-          axis.title.x = element_blank(),
-          axis.title.y = element_blank())
-dev.off()
-
-###################### Brepoints & Repeat & formation ###################################
 data_repeat_set <- data_plot[,c('SVTYPE','GROUP_LEN','SVLEN','Repeats_type_right', 'Repeats_type_left', 'GCcontent_left','GCcontent_right', 'GROUP_SUPP', 'RepClass')]
 data_repeat_set <- data_repeat_set[data_repeat_set$SVLEN<=1000000,]
 data_repeat_set_del <- data_repeat_set[data_repeat_set$SVTYPE=='DEL',]
@@ -555,13 +488,6 @@ condition_te <- !condition_vntr & ! condition_nahr &
      c('SINE','LINE','LTR','DNA')|
      data_repeat_set_del$Repeats_type_left%in%
      c('SINE','LINE','LTR','DNA'))
-
-# data_rep_tmp <- data.frame(mech=c('VNTR','NAHR','TE','Others'),
-#                            freq=c(
-#                              sum(condition_vntr),
-#                              sum(condition_nahr),
-#                              sum(condition_te),
-#                              num_sv -  sum(condition_vntr) - sum(condition_nahr) - sum(condition_te)))
 
 
 ids_pie = c('SV','DEL', 'INS')
@@ -633,15 +559,9 @@ for (label_condition in c('SINE','LINE', 'Other')) {
   }
 }
 
-# ids_pie <- c(ids_pie, 'Other-DEL')
-# labels_pie <- c(labels_pie, 'Others')
-# parents_pie <- c(parents_pie, 'DEL')
-# values_pie <- c(values_pie,  num_sv -  sum(condition_vntr) - sum(condition_nahr) - sum(condition_te))
-# 
 
 num_sv <- nrow(data_repeat_set_ins)
 condition_vntr <- data_repeat_set_ins$RepClass%in%c('Low_complexity','Simple_repeat','Satellite')
-# condition_nahr <- !condition_vntr&data_repeat_set_ins$Repeats_type_right==data_repeat_set_ins$Repeats_type_left
 condition_te <- !condition_vntr & (data_repeat_set_ins$Repeats_type_right%in%c('SINE','LINE','LTR','DNA')|data_repeat_set_ins$Repeats_type_left%in%c('SINE','LINE','LTR','DNA'))
 
 ids_pie <- c(ids_pie, 'VNTR-INS')
@@ -724,63 +644,6 @@ ggplot(data_rep_tmp, aes(x="",y=freq,fill=mech)) +
         axis.title.y = element_blank())
 dev.off()
 
-data_rep_tmp <- plyr::count(data_repeat_set_del[condition_nahr,],
-                            'Repeats_type_left')
-data_tmp <- data_repeat_set_del[condition_nahr,]
-data_tmp[data_tmp$Repeats_type_left%in%data_rep_tmp[data_rep_tmp$freq/sum(data_rep_tmp$freq)<0.05,]$Repeats_type_left,]$Repeats_type_left <- 'Other'
-data_rep_tmp <- plyr::count(data_tmp,
-                            'Repeats_type_left')
-
-
-pdf(file = paste(prefix_filename,'formation.pie.del.nahr','pdf',sep = '.'), width = 4, height = 3)
-ggplot(data_rep_tmp, aes(x="",y=freq,fill=Repeats_type_left)) + 
-  geom_bar(width=1,stat="identity") + coord_polar("y",start=0) + 
-  geom_text(aes(y=freq/10+c(0,cumsum(freq)[-length(freq)])), 
-            label=percent(data_rep_tmp$freq/sum(data_rep_tmp$freq)),
-            size=2,
-            color='white', 
-            fontface="bold")+
-  scale_fill_manual(values=config_color_repeat) +
-  theme_minimal() + 
-  theme(legend.title=element_blank(),
-        legend.position="bottom",
-        legend.spacing.x = unit(0.1, 'cm'),
-        legend.key.size=unit(0.5, 'cm'),
-        legend.text = element_text(size = 6,face = "bold"),
-        panel.border = element_blank(),
-        panel.grid = element_blank(),
-        axis.ticks = element_blank(),
-        axis.text = element_blank(),
-        axis.title.x = element_blank(),
-        axis.title.y = element_blank())
-dev.off()
-
-
-data_rep_tmp <- plyr::count(data_repeat_set_del[condition_vntr,],
-                            'RepClass')
-
-pdf(file = paste(prefix_filename,'formation.pie.del.vntr','pdf',sep = '.'), width = 4, height = 3)
-ggplot(data_rep_tmp, aes(x="",y=freq,fill=RepClass)) + 
-  geom_bar(width=1,stat="identity") + coord_polar("y",start=0) + 
-  geom_text(aes(y=freq/10+c(0,cumsum(freq)[-length(freq)])), 
-            label=percent(data_rep_tmp$freq/sum(data_rep_tmp$freq)),
-            size=2,
-            color='white', 
-            fontface="bold")+
-  scale_fill_manual(values=config_color_repeat) +
-  theme_minimal() + 
-  theme(legend.title=element_blank(),
-        legend.position="bottom",
-        legend.spacing.x = unit(0.1, 'cm'),
-        legend.key.size=unit(0.5, 'cm'),
-        legend.text = element_text(size = 6,face = "bold"),
-        panel.border = element_blank(),
-        panel.grid = element_blank(),
-        axis.ticks = element_blank(),
-        axis.text = element_blank(),
-        axis.title.x = element_blank(),
-        axis.title.y = element_blank())
-dev.off()
 
 num_sv <- nrow(data_repeat_set_ins)
 condition_vntr <- data_repeat_set_ins$RepClass%in%c('Low_complexity','Simple_repeat','Satellite')
@@ -840,103 +703,8 @@ ggplot(data=data_sv_repeat, aes(x=abs(SVLEN), fill = RepClass)) +
   ylab("SV Count")
 dev.off()
 
-# tiff(filename = paste(prefix_filename,'sv_repeat_len_INS_lte1k.tiff',sep = '.'), width = 1200, height = 1000, res = 300)
-
-# png(filename = paste(prefix_filename,'breakpoints.repeat.len.lte1m.ins.png',sep = '.'), width = 1200, height = 1000, res = val_res)
-pdf(file = paste(prefix_filename,'breakpoints.repeat.len.lte1m.ins','pdf',sep = '.'), width = 8, height = 6)
-ggplot(data=data_sv_repeat_ins, aes(x=abs(SVLEN), fill = RepClass)) +
-  geom_histogram() + 
-  scale_x_continuous(trans = 'log10',breaks = c(100,300,2000,6000,20000),
-                     labels = c('100bp','300bp','2kb','6kb','20kb'),limits = c(50,20000)) + 
-  theme_minimal()+
-  theme(legend.title=element_blank(),
-        legend.position=c(0.8,0.75),
-        legend.spacing.x = unit(0.1, 'cm'),
-        legend.key.size=unit(0.3, 'cm'),
-        legend.text = element_text(size = 6,face = "bold"),
-        axis.text.x = element_text(size = 6,face = "bold", angle = 45),
-        axis.text.y = element_text(size = 6,face = "bold"),
-        axis.title.y = element_text(size = 6,face = "bold"),
-        axis.title.x = element_text(size = 6,face = "bold"),
-        axis.title.x.bottom = element_text(margin = margin(-15,0,0,0))) +
-  scale_fill_manual(values=config_color_repeat) + 
-  xlab('') + 
-  ylab("SV Count")
-dev.off()
-
-# tiff(filename = paste(prefix_filename,'sv_repeat_len_DEL_lte1k.tiff',sep = '.'), width = 1200, height = 1000, res = 300)
-# png(filename = paste(prefix_filename,'breakpoints.repeat.len.lte1m.del.png',sep = '.'), width = 1200, height = 1000, res = val_res)
-pdf(file = paste(prefix_filename,'breakpoints.repeat.len.lte1m.del','pdf',sep = '.'), width = 8, height = 6)
-
-ggplot(data=data_sv_repeat_del, aes(x=abs(SVLEN), fill = RepClass)) +
-  geom_histogram() +
-  scale_x_continuous(trans = 'log10',breaks = c(100,300,2000,6000,20000),
-                     labels = c('100bp','300bp','2kb','6kb', '20kb'),limits = c(50,20000)) + 
-  theme_minimal()+
-  theme(legend.title=element_blank(),
-        legend.position=c(0.8,0.75),
-        legend.spacing.x = unit(0.1, 'cm'),
-        legend.key.size=unit(0.3, 'cm'),
-        legend.text = element_text(size = 6,face = "bold"),
-        axis.text.x = element_text(size = 6,face = "bold", angle = 45),
-        axis.text.y = element_text(size = 6,face = "bold"),
-        axis.title.y = element_text(size = 6,face = "bold"),
-        axis.title.x = element_text(size = 6,face = "bold"),
-        axis.title.x.bottom = element_text(margin = margin(-15,0,0,0))) +
-  scale_fill_manual(values=config_color_repeat) + 
-  xlab('') + 
-  ylab("SV Count")
-dev.off()
-
-###################### Brepoints & GCcontent vs Reference ###################################
-
-
-# library(gridExtra)
-# png(filename = paste(prefix_filename,'breakpoints.repeat.enrichment.png',sep = '.'), width = 1200, height = 2000, res = val_res)
-# # grid.arrange(plot.enrichment.ins,plot.enrichment.del,nrow=2)
-# dev.off()
-
 ###################### Brepoints & GCcontent & Repeat###################################
-pdf(file = paste(prefix_filename,'breakpoints.gc.repeat.ins','pdf',sep = '.'), width = 8, height = 6)
-# png(filename = paste(prefix_filename,'breakpoints.gc.repeat.ins.png',sep = '.'), width = 1200, height = 1000, res = val_res)
-ggplot(data=data_sv_repeat_ins, aes(x=GCcontent, fill = RepClass)) +
-  geom_histogram() +
-  theme_minimal()+
-  theme(legend.title=element_blank(),
-        legend.position='bottom',
-        legend.spacing.x = unit(0.1, 'cm'),
-        legend.key.size=unit(0.5, 'cm'),
-        legend.text = element_text(size = 10,face = "bold"),
-        axis.text.x = element_text(size = 10,face = "bold", angle = 45),
-        axis.text.y = element_text(size = 10,face = "bold"),
-        axis.title.y = element_text(size = 10,face = "bold"),
-        axis.title.x = element_text(size = 10,face = "bold")) +
-  scale_fill_manual(values=config_color_repeat) + 
-  xlab('GC Content (INS)') + 
-  ylab("SV Count")
-dev.off()
-
-pdf(file = paste(prefix_filename,'breakpoints.gc.repeat.del','pdf',sep = '.'), width = 8, height = 6)
-# png(filename = paste(prefix_filename,'breakpoints.gc.repeat.del.png',sep = '.'), width = 1200, height = 1000, res = val_res)
-ggplot(data=data_sv_repeat_del, aes(x=GCcontent, fill = RepClass)) +
-  geom_histogram() +
-  theme_minimal()+
-  theme(legend.title=element_blank(),
-        legend.position='bottom',
-        legend.spacing.x = unit(0.1, 'cm'),
-        legend.key.size=unit(0.5, 'cm'),
-        legend.text = element_text(size = 10,face = "bold"),
-        axis.text.x = element_text(size = 10,face = "bold", angle = 45),
-        axis.text.y = element_text(size = 10,face = "bold"),
-        axis.title.y = element_text(size = 10,face = "bold"),
-        axis.title.x = element_text(size = 10,face = "bold")) +
-  scale_fill_manual(values=config_color_repeat) + 
-  xlab('GC Content (DEL)') + 
-  ylab("SV Count")
-dev.off()
-
 pdf(file = paste(prefix_filename,'breakpoints.gc.repeat','pdf',sep = '.'), width = 8, height = 6)
-# png(filename = paste(prefix_filename,'breakpoints.gc.repeat.png',sep = '.'), width = 1200, height = 1000, res = val_res)
 ggplot(data=data_sv_repeat, aes(x=GCcontent, fill = RepClass)) +
   geom_histogram() +
   theme_minimal()+
@@ -983,7 +751,6 @@ ggplot(data_sv_group, aes(x="",y=freq,fill=GROUP_SV)) +
         axis.title.y = element_blank())
 dev.off()
 
-# png(filename = paste(prefix_filename,'gene.cds.pie.png',sep = '.'), width = 1200, height = 1000, res = val_res)
 data_sv_group <- data_sv_group[!data_sv_group$GROUP_SV%in%c('INTRONIC','INTERGENIC'),]
 pdf(file = paste(prefix_filename,'gene.cds.pie','pdf',sep = '.'), width = 4, height = 3)
 ggplot(data_sv_group, aes(x="",y=freq,fill=GROUP_SV)) + 
@@ -1018,7 +785,6 @@ for (type_sv in levels(data_sv_group$GROUP_SV)){
 }
 
 pdf(file = paste(prefix_filename,'gene.group_supp.bar','pdf',sep = '.'), width = 8, height = 6)
-# png(filename = paste(prefix_filename,'gene.group_supp.bar.png',sep = '.'), width = 1200, height = 1000, res = val_res)
 ggplot(data_sv_group, aes(x = GROUP_SV, y = freq, fill = GROUP_SUPP)) + 
   geom_bar(position = "fill",stat = "identity") +
   scale_y_continuous(labels = scales::percent_format(), expand = expand_scale(mult = .1)) + 
@@ -1038,8 +804,6 @@ ggplot(data_sv_group, aes(x = GROUP_SV, y = freq, fill = GROUP_SUPP)) +
   ylab("") +
   geom_text(aes(label = label, y= ..prop..), stat= "count", hjust = -0.1, size=2.5)
 dev.off()
-
-
 
 
 ###################### Database ######################
@@ -1106,8 +870,6 @@ for (type_sv in levels(data_sv_anno_group$SVTYPE)){
   data_sv_anno_group[data_sv_anno_group$SVTYPE==type_sv,]$label <- sum(data_sv_anno_group[data_sv_anno_group$SVTYPE==type_sv,]$freq)
 }
 
-# tiff(filename = paste(prefix_filename,'sv_anno_group_svtype.tiff',sep = '.'), width = 1200, height = 1000, res = 300)
-# png(filename = paste(prefix_filename,'database.svtype.png',sep = '.'), width = 1200, height = 1000, res = val_res)
 pdf(file = paste(prefix_filename,'database.svtype','pdf',sep = '.'), width = 8, height = 6)
 ggplot(data_sv_anno_group, aes(x = SVTYPE, y = freq, fill = forcats::fct_rev(Database))) + 
   geom_bar(position = "fill",stat = "identity") +
@@ -1130,9 +892,7 @@ ggplot(data_sv_anno_group, aes(x = SVTYPE, y = freq, fill = forcats::fct_rev(Dat
 dev.off()
 
 ###################### Database & AF & GROUP_SUPP ######################
-# tmp <- subset(data_plot, AF_Database > 0)
-# tiff(filename = paste(prefix_filename,'sv_anno_af.tiff',sep = '.'), width = 1200, height = 1000, res = 300)
-# png(filename = paste(prefix_filename,'database.af.png',sep = '.'), width = 1200, height = 1000, res = val_res)
+
 pdf(file = paste(prefix_filename,'database.af','pdf',sep = '.'), width = 8, height = 12)
 ggplot(data=data_plot, aes(x=AF_Database, fill = GROUP_SUPP)) +
   geom_histogram() +
@@ -1151,7 +911,6 @@ ggplot(data=data_plot, aes(x=AF_Database, fill = GROUP_SUPP)) +
   xlab('AF') + 
   ylab("Discovery")
 dev.off()
-
 
 
 ###################### Genotyping ######################
@@ -1193,9 +952,7 @@ for (label_condition in data_tmp_3$GROUP_SUPP) {
   values_pie <- c(values_pie, data_tmp_3[data_tmp_3$GROUP_SUPP==label_condition,]$freq)
 }
 
-# data_sv_group <- subset(data_tmp, GROUP_SUPP_NGS=='No Support' & 
-#                           MR_NGS <= 0.05 & 
-#                           GROUP_SUPP%in%c('Shared', 'Major'))
+
 data_sv_group <- subset(data_tmp, GROUP_SUPP_NGS=='No Support' & MR_NGS <= 0.05)
 
 data_sv_group$GROUP_REP <- 'None'
@@ -1227,8 +984,6 @@ fig <- plot_ly(
   branchvalues = 'total'
 )
 orca(fig, "../data/result_genotypted/plots/genotyping.pie.svg")
-
-
 
 ###################### Genotyping & HardyWeinberg ######################
 library(HardyWeinberg)
@@ -1312,104 +1067,13 @@ plot.HWE(data_genotypes_hw, lab.cex = 1)
 dev.off()
 
 
-data_genotypes_normal <- data_genotypes[
-  (!is.na(data_sv_details_all$AF_ALL_NGS))&
-    data_sv_details_all$MR_NGS<0.05&
-    data_sv_details_all$AF_ALL_NGS>0.01&
-    data_sv_details_all$AF_ALL_NGS<1&
-  data_sv_details_all$SVTYPE=='INS',
-  colnames(data_genotypes)%in%data_samples_info[data_samples_info$Platform=='NGS',]$SampleID]
-data_genotypes_normal[data_genotypes_normal==-1] <- 0
-data_genotypes_hw <- data_genotypes_normal
-data_genotypes_hw$AA <- rowSums(data_genotypes_normal==0)
-data_genotypes_hw$AB <- rowSums(data_genotypes_normal==1)
-data_genotypes_hw$BB <- rowSums(data_genotypes_normal==2)
-
-data_genotypes_hw <- data_genotypes_hw[,c('AA','AB','BB')]
-# png(filename = paste(prefix_filename,'genotyping.hardyweinberg.ins.png',sep = '.'), width = 1000, height = 1000, res = val_res)
-pdf(file = paste(prefix_filename,'genotyping.hardyweinberg.ins','pdf',sep = '.'), width = 8, height = 6)
-plot.HWE(data_genotypes_hw, lab.cex = 1)
-dev.off()
-
-data_genotypes_normal <- data_genotypes[
-  (!is.na(data_sv_details_all$AF_ALL_NGS))&
-    data_sv_details_all$MR_NGS<0.05&
-    data_sv_details_all$AF_ALL_NGS>0.01&
-    data_sv_details_all$AF_ALL_NGS<1&
-    data_sv_details_all$SVTYPE=='DEL',
-  colnames(data_genotypes)%in%data_samples_info[data_samples_info$Platform=='NGS',]$SampleID]
-data_genotypes_normal[data_genotypes_normal==-1] <- 0
-data_genotypes_hw <- data_genotypes_normal
-data_genotypes_hw$AA <- rowSums(data_genotypes_normal==0)
-data_genotypes_hw$AB <- rowSums(data_genotypes_normal==1)
-data_genotypes_hw$BB <- rowSums(data_genotypes_normal==2)
-
-data_genotypes_hw <- data_genotypes_hw[,c('AA','AB','BB')]
-# png(filename = paste(prefix_filename,'genotyping.hardyweinberg.del.png',sep = '.'), width = 1000, height = 1000, res = val_res)
-pdf(file = paste(prefix_filename,'genotyping.hardyweinberg.del','pdf',sep = '.'), width = 8, height = 6)
-plot.HWE(data_genotypes_hw, lab.cex = 1)
-dev.off()
-
-data_genotypes_normal <- data_genotypes[
-  (!is.na(data_sv_details_all$AF_ALL_NGS))&
-    data_sv_details_all$MR_NGS<0.05&
-    data_sv_details_all$AF_ALL_NGS>0.01&
-    data_sv_details_all$AF_ALL_NGS<1&
-    data_sv_details_all$SVTYPE=='INV',
-  colnames(data_genotypes)%in%data_samples_info[data_samples_info$Platform=='NGS',]$SampleID]
-data_genotypes_normal[data_genotypes_normal==-1] <- 0
-data_genotypes_hw <- data_genotypes_normal
-data_genotypes_hw$AA <- rowSums(data_genotypes_normal==0)
-data_genotypes_hw$AB <- rowSums(data_genotypes_normal==1)
-data_genotypes_hw$BB <- rowSums(data_genotypes_normal==2)
-
-data_genotypes_hw <- data_genotypes_hw[,c('AA','AB','BB')]
-# png(filename = paste(prefix_filename,'genotyping.hardyweinberg.inv.png',sep = '.'), width = 1000, height = 1000, res = val_res)
-pdf(file = paste(prefix_filename,'genotyping.hardyweinberg.inv','pdf',sep = '.'), width = 8, height = 6)
-plot.HWE(data_genotypes_hw, lab.cex = 1)
-dev.off()
-
-data_genotypes_normal <- data_genotypes[
-  (!is.na(data_sv_details_all$AF_ALL_NGS))&
-    data_sv_details_all$MR_NGS<0.05&
-    data_sv_details_all$AF_ALL_NGS>0.01&
-    data_sv_details_all$AF_ALL_NGS<1&
-    data_sv_details_all$SVTYPE=='DUP',
-  colnames(data_genotypes)%in%data_samples_info[data_samples_info$Platform=='NGS',]$SampleID]
-data_genotypes_normal[data_genotypes_normal==-1] <- 0
-data_genotypes_hw <- data_genotypes_normal
-data_genotypes_hw$AA <- rowSums(data_genotypes_normal==0)
-data_genotypes_hw$AB <- rowSums(data_genotypes_normal==1)
-data_genotypes_hw$BB <- rowSums(data_genotypes_normal==2)
-
-data_genotypes_hw <- data_genotypes_hw[,c('AA','AB','BB')]
-pdf(file = paste(prefix_filename,'genotyping.hardyweinberg.dup','pdf',sep = '.'), width = 8, height = 6)
-# png(filename = paste(prefix_filename,'genotyping.hardyweinberg.dup.png',sep = '.'), width = 1000, height = 1000, res = val_res)
-plot.HWE(data_genotypes_hw, lab.cex = 1)
-dev.off()
-
-###################### TODO Genotyping & AF correlation ##########################
-data_sv_database <- data_sv_details_all[data_sv_details_all$AF_Database>0.01&data_sv_details_all$AF_ALL_NGS>0.01&data_sv_details_all$MR_NGS<0.05,]
-ggplot(data_sv_database, aes(x=AF_ALL_NGS*100, y=AF_Database*100)) + geom_point() +
-  scale_x_continuous(trans = 'log10', 
-                     breaks = c(1,10,100)) + 
-  scale_y_continuous(trans = 'log10', 
-                     breaks = c(1,10,100))
-
-data_sv_database <- data_sv_details_all[data_sv_details_all$AF_ALL>0.01&data_sv_details_all$MR<0.05&data_sv_details_all$AF_ALL_NGS>0.01&data_sv_details_all$MR_NGS<0.05,]
-ggplot(data_sv_database, aes(x=AF_ALL_NGS*100, y=AF_ALL*100)) + geom_point() +
-  scale_x_continuous(trans = 'log10', 
-                     breaks = c(1,10,100)) + 
-  scale_y_continuous(trans = 'log10', 
-                     breaks = c(1,10,100))
-
 ###################### Genotyping & GROUP_SUPP ######################
 tmp <- subset(data_plot, SUPP_NGS>0)
 df.new<-ddply(tmp,.(SVTYPE),plyr::summarise,
               prop=prop.table(table(GROUP_SUPP_NGS)),
               SUPP=names(table(GROUP_SUPP_NGS)))
 df.new$SUPP <- factor(df.new$SUPP, levels = c('Singleton', 'Polymorphic', 'Major', 'Shared'))
-pdf(file = paste(prefix_filename,'genotyping.group_supp.bar','pdf',sep = '.'), width = 3, height = 3)
+pdf(file = paste(prefix_filename,'µ','pdf',sep = '.'), width = 3, height = 3)
 ggplot(df.new, aes(SUPP, prop, fill=SVTYPE)) + 
   geom_bar(stat="identity",position = 'dodge') + 
   theme_minimal()+
@@ -1555,7 +1219,6 @@ dev.off()
 
 ###################### Genotyping & SVTYPE & LD ######################
 data_sv_group <- data_plot[data_plot$LD>0&data_plot$SVTYPE!='TRA'&!is.na(data_plot$LD),]
-# png(filename = paste(prefix_filename,'genotyping.svtype.LD.boxplot.png',sep = '.'), width = 1200, height = 1200, res = val_res)
 pdf(file = paste(prefix_filename,'genotyping.svtype.LD.boxplot','pdf',sep = '.'), width = 8, height = 6)
 ggplot(data_sv_group, aes(x=SVTYPE, y=LD,group=SVTYPE)) + 
   geom_boxplot(aes(fill=SVTYPE),outlier.size = 0.1) + 
@@ -1578,114 +1241,9 @@ ggplot(data_sv_group, aes(x=SVTYPE, y=LD,group=SVTYPE)) +
   ylab("max LD")
 dev.off()
 
-###################### Genotyping & Enrichment EQTL&GWAS ######################
-data_tmp <- plyr::count(data_snps_eqtl,c('SVID', 'Gene'))
-data_tmp <- data_tmp[data_tmp$Gene!='.',]
-data_sv_group <- plyr::count(data_sv_details_all[data_sv_details_all$SVID%in%unique(data_tmp$SVID)&data_sv_details_all$AF_ALL_NGS>0.05&!is.na(data_sv_details_all$AF_ALL_NGS),],
-                             c('GROUP_SUPP_NGS','SVTYPE'))
-# png(filename = paste(prefix_filename,'genotyping.svtype.LD.eqtl.png',sep = '.'), width = 1200, height = 1200, res = val_res)
-pdf(file = paste(prefix_filename,'genotyping.svtype.LD.eqtl','pdf',sep = '.'), width = 8, height = 6)
-ggplot(data_sv_group, aes(x=GROUP_SUPP_NGS, y=freq, fill=SVTYPE)) + 
-  geom_bar(stat = 'identity', position = 'dodge') + 
-  theme(legend.title=element_blank(),
-        legend.position='bottom',
-        # panel.border = element_blank(),
-        # panel.grid = element_blank(),
-        panel.background = element_blank(),
-        legend.spacing.x = unit(0.1, 'cm'),
-        legend.key.size=unit(0.5, 'cm'),
-        legend.text = element_text(size = 10,face = "bold"),
-        axis.text.x = element_text(size = 10,face = "bold"),
-        axis.text.y = element_text(size = 10,face = "bold"),
-        axis.title.y = element_text(size = 10,face = "bold"),
-        axis.title.x = element_text(size = 10,face = "bold"),
-        axis.title.x.bottom = element_text(margin = margin(-10,0,0,0))) +
-  scale_fill_manual(values=config_color_svtype) + 
-  xlab('') + 
-  ylab("")
-dev.off()
-
-data_tmp <- plyr::count(data_snps_gwas,c('SVID', 'SNPID'))
-data_tmp <- data_tmp[data_tmp$SNPID!='.',]
-data_sv_group <- plyr::count(data_sv_details_all[data_sv_details_all$SVID%in%unique(data_tmp$SVID)&data_sv_details_all$AF_ALL_NGS>0.05&!is.na(data_sv_details_all$AF_ALL_NGS),],
-                             c('GROUP_SUPP_NGS','SVTYPE'))
-# png(filename = paste(prefix_filename,'genotyping.svtype.LD.gwas.png',sep = '.'), width = 1200, height = 1200, res = val_res)
-pdf(file = paste(prefix_filename,'genotyping.svtype.LD.gwas','pdf',sep = '.'), width = 8, height = 6)
-ggplot(data_sv_group, aes(x=GROUP_SUPP_NGS, y=freq, fill=SVTYPE)) + 
-  geom_bar(stat = 'identity', position = 'dodge') + 
-  theme(legend.title=element_blank(),
-        legend.position='bottom',
-        # panel.border = element_blank(),
-        # panel.grid = element_blank(),
-        panel.background = element_blank(),
-        legend.spacing.x = unit(0.1, 'cm'),
-        legend.key.size=unit(0.5, 'cm'),
-        legend.text = element_text(size = 10,face = "bold"),
-        axis.text.x = element_text(size = 10,face = "bold"),
-        axis.text.y = element_text(size = 10,face = "bold"),
-        axis.title.y = element_text(size = 10,face = "bold"),
-        axis.title.x = element_text(size = 10,face = "bold"),
-        axis.title.x.bottom = element_text(margin = margin(-10,0,0,0))) +
-  scale_fill_manual(values=config_color_svtype) + 
-  xlab('') + 
-  ylab("")
-dev.off()
-
-###################### target-90 EQTL ######################
-
-# png(filename = paste(prefix_filename,'target90.eqtl.png',sep = '.'), width = 1200, height = 1200, res = val_res)
-pdf(file = paste(prefix_filename,'target90.eqtl','pdf',sep = '.'), width = 8, height = 6)
-ggplot(data_pairs_target_90, aes(x=GROUP, y=slope, fill=GROUP)) + 
-  geom_violin() + 
-  theme_minimal() + 
-  theme(legend.position = 'none') +
-  xlab('') +
-  ylab('effect size')
-dev.off()
-
 ###################### target-90 enrichment ######################
-data.gene.background <- read.xlsx('../data/result_genotypted/target-90/deng.background.xlsx')
-data.gene.target90 <- read.table('../data/result_genotypted/target-90/Tables-qc.genelist.txt', header = FALSE)
-colnames(data.gene.target90) <- 'Gene'
-data.gene.background$Genes <- NA
-data.deng.prior <- read.table('../data/result_genotypted/target-90/deng.prior.supplement.txt', header = FALSE)
-colnames(data.deng.prior) <- 'Gene'
 
-data.deng.prior.new <- data.deng.prior$Gene[!str_detect(data.gene.background[data.gene.background$Gene.Set=='prior literature',]$Gene.Symbol, as.character(data.deng.prior$Gene))]
-data.gene.background$N1 <- data.gene.background$N1 + length(data.deng.prior.new)
-data.gene.background$N0 <- data.gene.background$N0 - length(data.deng.prior.new)
-data.gene.background$Number.of.Genes <-  data.gene.background$Number.of.Genes + length(data.deng.prior.new)
-data.gene.background[data.gene.background$Gene.Set=='prior literature',]$Gene.Symbol <- paste(
-  data.gene.background[data.gene.background$Gene.Set=='prior literature',]$Gene.Symbol,
-  paste(data.deng.prior.new,collapse = ','),
-  sep = ',')
-
-for (index_row in seq(nrow(data.gene.background))) {
-  
-  data.gene.background[index_row,]$Genes <- paste(data.gene.target90$Gene[str_detect(data.gene.background[index_row,]$Gene.Symbol,
-                                                       as.character(data.gene.target90$Gene))],collapse = ',')
-  
-  data.gene.background[index_row,]$A1 <- sum(str_detect(data.gene.background[index_row,]$Gene.Symbol,
-                                                        as.character(data.gene.target90$Gene)))
-  data.gene.background[index_row,]$A0 <- sum(!str_detect(data.gene.background[index_row,]$Gene.Symbol,
-                                                        as.character(data.gene.target90$Gene)))
-  
-  tmp <- fisher.test(matrix(c(data.gene.background[index_row,]$A1,
-                              data.gene.background[index_row,]$A0,
-                              data.gene.background[index_row,]$N1,
-                              data.gene.background[index_row,]$N0),nrow = 2))
-  data.gene.background[index_row,]$Odds.Ratio <- tmp$estimate
-  data.gene.background[index_row,]$p.value <- tmp$p.value
-}
-
-write.table(data.gene.background,
-            file = '../data/result_genotypted/target-90/enrich.update.txt',
-            quote = FALSE,
-            row.names = FALSE,
-            col.names = TRUE,
-            sep = '\t')
-
-data.gene.background <- read.xlsx('../data/result_genotypted/target-90/enrich.xlsx')
+data.gene.background <- read.xlsx('example/enrich.xlsx')
 
 for (index_row in seq(nrow(data.gene.background))) {
 
@@ -1715,7 +1273,7 @@ ggplot(data=data.gene.background[2:11,],aes(x=Gene.Set,
   ylab("")
 dev.off()
 
-data.gene.background <- read.csv('../data/result_genotypted/target-90/metascape.target.90/metascape_result.tsv', sep = '\t')
+data.gene.background <- read.csv('example/metascape_result.tsv', sep = '\t')
 data.gene.background$count <- as.integer(str_split_fixed(data.gene.background$InTerm_InList,pattern = '/', n=2)[,1])
 data.gene.background$p <- 10 ** data.gene.background$LogP
 data.gene.background$Description <- factor(data.gene.background$Description, levels = rev(data.gene.background$Description))
@@ -1745,8 +1303,6 @@ for (type_sv in levels(data_sv_group$GROUP_SV)){
   data_sv_group[data_sv_group$GROUP_SV==type_sv,]$label <- sum(data_sv_group[data_sv_group$GROUP_SV==type_sv,]$freq)
 }
 
-# tiff(filename = paste(prefix_filename,'sv_summary.tiff',sep = '.'), width = 1200, height = 1000, res = 300)
-# png(filename = paste(prefix_filename,'genotyping.gene.group_supp.bar.png',sep = '.'), width = 1200, height = 1000, res = val_res)
 pdf(file = paste(prefix_filename,'genotyping.gene.group_supp.bar','pdf',sep = '.'), width = 8, height = 6)
 ggplot(data_sv_group, aes(x = GROUP_SV, y = freq, fill = GROUP_SUPP_NGS)) + 
   geom_bar(position = "fill",stat = "identity") +
@@ -1772,7 +1328,6 @@ dev.off()
 
 data_tmp <- data_plot[!is.na(data_plot$AF_ALL_NGS)&data_plot$MR_NGS<0.05&data_plot$AF_ALL_NGS>0&data_plot$AF_ALL_NGS<0.1,]
 pdf(file = paste(prefix_filename,'genotyping.pop.vaf.group_pop','pdf',sep = '.'), width = 3, height = 3)
-# png(filename = paste(prefix_filename,'genotyping.pop.vaf.group_pop.png',sep = '.'), width = 1200, height = 1200, res = val_res)
 ggplot(data=data_tmp, aes(AF_ALL_NGS, stat(count), fill = GROUP_POP_NGS)) +
   geom_density(position = "fill",bw=0.005) + 
   scale_fill_manual(values=config_color_group_pop)+ 
@@ -1792,7 +1347,6 @@ ggplot(data=data_tmp, aes(AF_ALL_NGS, stat(count), fill = GROUP_POP_NGS)) +
 dev.off()
 
 data_tmp <- data_plot[!is.na(data_plot$AF_ALL_NGS)&data_plot$MR_NGS<0.05&data_plot$AF_ALL_NGS>0&data_plot$AF_ALL_NGS<0.1,]
-# png(filename = paste(prefix_filename,'genotyping.pop.vaf.group_pop_detail.png',sep = '.'), width = 1200, height = 1200, res = val_res)
 pdf(file = paste(prefix_filename,'genotyping.pop.vaf.group_pop_detail','pdf',sep = '.'), width = 3, height = 3)
 ggplot(data=data_tmp, aes(AF_ALL_NGS, stat(count), fill = GROUP_POP_DETAIL_NGS)) +
   geom_density(position = "fill",bw=0.005) + 
@@ -1813,25 +1367,6 @@ ggplot(data=data_tmp, aes(AF_ALL_NGS, stat(count), fill = GROUP_POP_DETAIL_NGS))
 dev.off()
 
 ###################### Genotyping & POP PCA ######################
-
-group_sample <- as.data.frame(data_samples_info[data_samples_info$Source=='T15H10',c('SampleID','Group','Group_Detail','Location')])
-group_sample <- group_sample[order(group_sample$SampleID),]
-rownames(group_sample) <- group_sample$SampleID
-# group_sample <- as.data.frame(data_samples_info[1:25, c('SampleID','Group', 'Location')])
-# rownames(group_sample) <- group_sample$SampleID
-
-data_genotypes_normal <- data_genotypes[data_sv_details_all$MR<0.05,colnames(data_genotypes)%in%group_sample$SampleID]
-data_genotypes_normal[data_genotypes_normal==-1] <- 0
-# tmp <- (data_genotypes_normal- rowMeans(data_genotypes_normal))/(1+(2*sqrt(data_sv_details_all$AF_ALL*(1-data_sv_details_all$AF_ALL))))
-p <- (1 + rowSums(data_genotypes_normal))/(2+2*nrow(group_sample))
-tmp <- (data_genotypes_normal- rowMeans(data_genotypes_normal))/2*sqrt(p*(1-p))
-data_sv_details_all_matrix.pca <- prcomp(t(as.matrix(tmp)))
-# png(filename = paste(prefix_filename,'pop.pca.ont.png',sep = '.'), width = 1200, height = 1000, res = 300)
-pdf(file = paste(prefix_filename,'pop.pca.ont','pdf',sep = '.'), width = 8, height = 6)
-autoplot(data_sv_details_all_matrix.pca, data = group_sample, colour='Group_Detail', label=TRUE, frame=TRUE)
-dev.off()
-
-
 group_sample <- as.data.frame(data_samples_info[!data_samples_info$Source%in%c('T15H10','HUM'),c('SampleID','Group','Group_Detail','Location')])
 group_sample <- group_sample[order(group_sample$SampleID),]
 rownames(group_sample) <- group_sample$SampleID
@@ -1883,7 +1418,6 @@ data_sv_details_all_matrix.pca <- prcomp(t(as.matrix(tmp)))
 PCi<-data.frame(data_sv_details_all_matrix.pca$x,Group_Detail=group_sample$Group_Detail)
 
 pdf(file = paste(prefix_filename,'genotyping.pop.pca.noAFR','pdf',sep = '.'), width = 3, height = 3)
-# png(filename = paste(prefix_filename,'genotyping.pop.pca.noAFR.png',sep = '.'), width = 1200, height = 1000, res = 300)
 p2 <- ggplot(PCi,aes(x=PC1,y=PC2,color=Group_Detail))+
   geom_point(size=0.8)+ #Size and alpha just for fun
   scale_color_manual(values = config_color_group_pop) +
@@ -2040,47 +1574,6 @@ group_sample$Location <- factor(group_sample$Location, levels = unique(c(
 
 pairwise.t.test(group_sample$PHot, g = group_sample$Group_Detail, p.adjust.method = 'bonferroni')
 pairwise.t.test(group_sample$PHt, g = group_sample$Group_Detail, p.adjust.method = 'bonferroni')
-pdf(file = paste(prefix_filename,'genotyping.pop.het.loc','pdf',sep = '.'), width = 8, height = 6)
-# png(filename = paste(prefix_filename,'genotyping.pop.het.loc.png',sep = '.'), width = 1200, height = 1000, res = 300)
-p1 <- ggplot(group_sample, aes(x=Location, y=PHt, fill=Group_Detail)) + 
-  geom_violin() + 
-  coord_flip() + 
-  theme_minimal()+
-  theme(legend.title=element_blank(),
-        legend.position='none',
-        panel.border = element_blank(),
-        panel.grid = element_blank(),
-        panel.background = element_blank(),
-        axis.line.x = element_line(size=0.6, colour = "black"),
-        axis.line.y = element_line(size=0.6, colour = "black"),
-        axis.text.x = element_text(size = 10,face = "bold",vjust = 0.6),
-        axis.text.y = element_text(size = 10,face = "bold"),
-        axis.title.y = element_text(size = 10,face = "bold"),
-        axis.title.x = element_text(size = 10,face = "bold"),
-        axis.title.x.bottom = element_text(margin = margin(5,0,0,0))) + 
-  xlab('') + 
-  ylab("#het")
-p2 <- ggplot(group_sample, aes(x=Location, y=PHot, fill=Group_Detail)) + 
-  geom_violin() + 
-  coord_flip() + 
-  theme_minimal()+
-  theme(legend.title=element_blank(),
-        legend.position='none',
-        panel.border = element_blank(),
-        panel.grid = element_blank(),
-        panel.background = element_blank(),
-        axis.line.x = element_line(size=0.6, colour = "black"),
-        axis.text.y = element_blank(),
-        axis.ticks.y = element_blank(),
-        legend.text = element_text(size = 10,face = "bold"),
-        axis.text.x = element_text(size = 10,face = "bold",vjust = 0.6),
-        axis.title.x = element_text(size = 10,face = "bold"),
-        axis.title.x.bottom = element_text(margin = margin(5,0,0,0))) + 
-  xlab('') + 
-  ylab("#hom")
-# ggarrange(p1, p2,ncol=2,nrow = 1)
-multiplot(p1,p2,cols = 2)
-dev.off()
 
 
 pdf(file = paste(prefix_filename,'genotyping.pop.hetANDhom','pdf',sep = '.'), width = 6, height = 3)
@@ -2134,157 +1627,41 @@ p2 <- ggplot(group_sample, aes(x=Group_Detail, y=PHt, fill=Group_Detail)) +
 multiplot(p1,p2,cols = 2)
 dev.off()
 
-
-pdf(file = paste(prefix_filename,'genotyping.pop.hetANDhom.ins','pdf',sep = '.'), width = 8, height = 6)
-# png(filename = paste(prefix_filename,'genotyping.pop.hetANDhom.ins.png',sep = '.'), width = 2400, height = 1000, res = 300)
-p1 <- ggplot(group_sample_svtype[group_sample_svtype$SVTYPE=='INS',], aes(x=Group_Detail, y=PHot, fill=Group_Detail)) + 
-  geom_violin() + 
-  coord_flip() + 
-  scale_fill_manual(values=config_color_group_pop) +
-  theme_minimal()+
-  theme(legend.title=element_blank(),
-        legend.position='none',
-        legend.spacing.x = unit(0.1, 'cm'),
-        legend.key.size=unit(0.5, 'cm'),
-        legend.text = element_text(size = 10,face = "bold"),
-        panel.border = element_blank(),
-        panel.grid = element_blank(),
-        panel.background = element_blank(),
-        axis.line.x = element_line(size=0.6, colour = "black"),
-        axis.line.y = element_line(size=0.6, colour = "black"),
-        axis.text.x = element_text(size = 10,face = "bold",vjust = 0.6),
-        axis.text.y = element_text(size = 10,face = "bold"),
-        axis.title.y = element_text(size = 10,face = "bold"),
-        axis.title.x = element_text(size = 10,face = "bold"),
-        axis.title.x.bottom = element_text(margin = margin(5,0,0,0))) + 
-  xlab('') + 
-  ylab("#hom")
-p2 <- ggplot(group_sample_svtype[group_sample_svtype$SVTYPE=='INS',], aes(x=Group_Detail, y=PHt, fill=Group_Detail)) + 
-  geom_violin() + 
-  coord_flip() + 
-  scale_fill_manual(values=config_color_group_pop) +
-  theme_minimal()+
-  theme(legend.title=element_blank(),
-        legend.position='none',
-        legend.spacing.x = unit(0.1, 'cm'),
-        legend.key.size=unit(0.5, 'cm'),
-        panel.border = element_blank(),
-        panel.grid = element_blank(),
-        panel.background = element_blank(),
-        axis.line.x = element_line(size=0.6, colour = "black"),
-        axis.text.y = element_blank(),
-        axis.ticks.y = element_blank(),
-        legend.text = element_text(size = 10,face = "bold"),
-        axis.text.x = element_text(size = 10,face = "bold",vjust = 0.6),
-        axis.title.x = element_text(size = 10,face = "bold"),
-        axis.title.x.bottom = element_text(margin = margin(5,0,0,0))) + 
-  xlab('') + 
-  ylab("#het")
-multiplot(p1,p2,cols = 2)
-dev.off()
-
-
-pdf(file = paste(prefix_filename,'genotyping.pop.hetANDhom.ins','pdf',sep = '.'), width = 8, height = 6)
-# png(filename = paste(prefix_filename,'genotyping.pop.hetANDhom.del.png',sep = '.'), width = 2400, height = 1000, res = 300)
-p1 <- ggplot(group_sample_svtype[group_sample_svtype$SVTYPE=='DEL',], aes(x=Group_Detail, y=PHot, fill=Group_Detail)) + 
-  geom_violin() + 
-  coord_flip() + 
-  scale_fill_manual(values=config_color_group_pop) +
-  theme_minimal()+
-  theme(legend.title=element_blank(),
-        legend.position='none',
-        legend.spacing.x = unit(0.1, 'cm'),
-        legend.key.size=unit(0.5, 'cm'),
-        legend.text = element_text(size = 10,face = "bold"),
-        panel.border = element_blank(),
-        panel.grid = element_blank(),
-        panel.background = element_blank(),
-        axis.line.x = element_line(size=0.6, colour = "black"),
-        axis.line.y = element_line(size=0.6, colour = "black"),
-        axis.text.x = element_text(size = 10,face = "bold",vjust = 0.6),
-        axis.text.y = element_text(size = 10,face = "bold"),
-        axis.title.y = element_text(size = 10,face = "bold"),
-        axis.title.x = element_text(size = 10,face = "bold"),
-        axis.title.x.bottom = element_text(margin = margin(5,0,0,0))) + 
-  xlab('') + 
-  ylab("#hom")
-p2 <- ggplot(group_sample_svtype[group_sample_svtype$SVTYPE=='DEL',], aes(x=Group_Detail, y=PHt, fill=Group_Detail)) + 
-  geom_violin() + 
-  coord_flip() + 
-  scale_fill_manual(values=config_color_group_pop) +
-  theme_minimal()+
-  theme(legend.title=element_blank(),
-        legend.position='none',
-        legend.spacing.x = unit(0.1, 'cm'),
-        legend.key.size=unit(0.5, 'cm'),
-        panel.border = element_blank(),
-        panel.grid = element_blank(),
-        panel.background = element_blank(),
-        axis.line.x = element_line(size=0.6, colour = "black"),
-        axis.text.y = element_blank(),
-        axis.ticks.y = element_blank(),
-        legend.text = element_text(size = 10,face = "bold"),
-        axis.text.x = element_text(size = 10,face = "bold",vjust = 0.6),
-        axis.title.x = element_text(size = 10,face = "bold"),
-        axis.title.x.bottom = element_text(margin = margin(5,0,0,0))) + 
-  xlab('') + 
-  ylab("#het")
-multiplot(p1,p2,cols = 2)
-dev.off()
-
 ###################### Genotyping & POP FST ######################
 library(qqman)
 library(Cairo)
 
-  Fstfile <- read.table(paste(path_data, 'fst/merge.paragraph.genotypes.TIBvsHAN.20k_5k.windowed.weir.fst', sep = ''), header = T, stringsAsFactors = F)
-  SNP <- paste(Fstfile[,1], Fstfile[,2], sep = ':')
-  Fstfile <- cbind(SNP, Fstfile)
-  colnames(Fstfile) <- c('SNP', 'CHR', 'POS','END','Bins', 'Fst','mean')
-  Fstfile[Fstfile$CHR == 'chrX',]$CHR <- 'chr23'
-  Fstfile$CHR <- as.numeric(str_split_fixed(Fstfile$CHR,'chr',2)[,2])
+Fstfile <- read.table(paste('example/merge.paragraph.genotypes.TIBvsHAN.20k_5k.windowed.weir.fst', sep = ''), header = T, stringsAsFactors = F)
+SNP <- paste(Fstfile[,1], Fstfile[,2], sep = ':')
+Fstfile <- cbind(SNP, Fstfile)
+colnames(Fstfile) <- c('SNP', 'CHR', 'POS','END','Bins', 'Fst','mean')
+Fstfile[Fstfile$CHR == 'chrX',]$CHR <- 'chr23'
+Fstfile$CHR <- as.numeric(str_split_fixed(Fstfile$CHR,'chr',2)[,2])
+
+filePNG <-paste(prefix_filename,'genotyping.pop.fst.pdf',sep = '.')
+CairoPNG(file=filePNG, width = 1500, height = 500)
+CairoPDF(file = filePNG,
+         width = 8, height = 4, onefile = TRUE, family = "Helvetica")
+# CairoTIFF(file = filePNG,
+         # width = 800, height = 400, onefile = TRUE, family = "Helvetica", dpi=300)
+colorset <- c('#FF0000', '#FFD700', '#2E8B57', '#7FFFAA', '#6495ED', '#0000FF', '#FF00FF')
+manhattan(Fstfile, chr='CHR', bp='POS', p='Fst', snp='SNP', col=colorset, 
+          logp=FALSE, 
+          suggestiveline=0.15, 
+          genomewideline=FALSE, 
+          ylab='Fst', 
+          ylim=c(0,0.6), 
+          font.lab=4,
+          cex.lab=0.8,  
+          cex=0.1, 
+          chrlabs = c(1:22, "X"))
+dev.off()
   
-  # filePNG <-paste(prefix_filename,'genotyping.pop.fst.pdf',sep = '.')
-  # filePNG <- paste(prefix_filename,'genotyping.pop.fst.tiff',sep = '.')
-  CairoPNG(file=filePNG, width = 1500, height = 500)
-  CairoPDF(file = filePNG,
-           width = 8, height = 4, onefile = TRUE, family = "Helvetica")
-  # CairoTIFF(file = filePNG,
-           # width = 800, height = 400, onefile = TRUE, family = "Helvetica", dpi=300)
-  colorset <- c('#FF0000', '#FFD700', '#2E8B57', '#7FFFAA', '#6495ED', '#0000FF', '#FF00FF')
-  manhattan(Fstfile, chr='CHR', bp='POS', p='Fst', snp='SNP', col=colorset, 
-            logp=FALSE, 
-            suggestiveline=0.15, 
-            genomewideline=FALSE, 
-            ylab='Fst', 
-            ylim=c(0,0.6), 
-            font.lab=4,
-            cex.lab=0.8,  
-            cex=0.1, 
-            chrlabs = c(1:22, "X"))
-  dev.off()
-  
-  
-  Fstfile <- read.table(paste(path_data, 'fst/merge.paragraph.genotypes.TIBvsAFR.20k_5k.windowed.weir.fst', sep = ''), header = T, stringsAsFactors = F)
-  SNP <- paste(Fstfile[,1], Fstfile[,2], sep = ':')
-  Fstfile <- cbind(SNP, Fstfile)
-  colnames(Fstfile) <- c('SNP', 'CHR', 'POS','END','Bins', 'Fst','mean')
-  Fstfile[Fstfile$CHR == 'chrX',]$CHR <- 'chr23'
-  Fstfile$CHR <- as.numeric(str_split_fixed(Fstfile$CHR,'chr',2)[,2])
-  
-  filePNG <-paste(prefix_filename,'genotyping.pop.fst.afr.fst',sep = '.')
-  # CairoPNG(file=filePNG, width = 1500, height = 500)
-  CairoPDF(file = filePNG,
-           width = 6, height = 3, onefile = TRUE, family = "Helvetica")
-  colorset <- c('#FF0000', '#FFD700', '#2E8B57', '#7FFFAA', '#6495ED', '#0000FF', '#FF00FF')
-  manhattan(Fstfile, chr='CHR', bp='POS', p='Fst', snp='SNP', col=colorset, 
-            logp=FALSE, suggestiveline=FALSE, genomewideline=FALSE, ylab='Fst', ylim=c(0,1), 
-            font.lab=4,cex.lab=1.2, main='TIBvsAFR', cex=0.8, chrlabs = c(1:22, "X"))
-  dev.off()
 
 ###################### Genotyping & POP admixture ######################
 
 # Assign the first argument to prefix
-prefix=paste(path_data, '/admixture/merge.paragraph.genotypes.local.reformat.addPopInfo.addFST.LDpruned',sep = '')
+prefix=paste('example/admixture/merge.paragraph.genotypes.local.reformat.addPopInfo.addFST.LDpruned',sep = '')
 
 # Get individual names in the correct order
 labels <- data.frame('ind' <- colnames(data_sv_details_raw@gt)[27:217], 'pop' <- NA)
@@ -2338,68 +1715,4 @@ pdf(file = paste(prefix_filename,'genotyping.pop.admixture.include_Biaka','Group
               bp[length(bp)])-diff(c(1,which(spaces==0.5),bp[length(bp)]))/2, 
        tick = F,
        labels=unlist(strsplit('AFR,HANS,HANN,TIBL,TIBG',",")))
-dev.off()
-
-
-source('popcorn-master/R/admixture.R')
-source('popcorn-master/R/io.R')
-
-sort_order <- c(data_samples_info[data_samples_info$Group_Detail=='AFR'&data_samples_info$Platform=='NGS',]$SampleID,
-                data_samples_info[data_samples_info$Group_Detail=='HANS'&data_samples_info$Platform=='NGS',]$SampleID,
-                data_samples_info[data_samples_info$Group_Detail=='HANN'&data_samples_info$Platform=='NGS',]$SampleID,
-                data_samples_info[data_samples_info$Group_Detail=='TIBL'&data_samples_info$Platform=='NGS',]$SampleID,
-                data_samples_info[data_samples_info$Group_Detail=='TIBG'&data_samples_info$Platform=='NGS',]$SampleID)
-
-plot_admixture_multi <- function(prefix, k, sort_order, flag_label=FALSE){
-  pops <- read_fam(paste(prefix,'fam', sep = '.'))
-  pops <- pops[pops$fid%in%data_samples_info$SampleID&
-                 pops$iid%in%data_samples_info$SampleID,]
-  Q <- read_Q_matrix(paste(prefix,k,'Q', sep = '.'))
-  Q <- Q[Q$fid%in%data_samples_info$SampleID&
-           Q$iid%in%data_samples_info$SampleID,]
-  so <- sort_by_cluster(Q)
-  QQ <- tidy(Q, pops)
-  return(plot_admixture(QQ, label = flag_label, sort.order = sort_order))
-}
-
-p6 <- plot_admixture_multi(prefix, 6, sort_order) + theme(plot.margin = unit(c(0,0,0,0),'cm'))
-p5 <- plot_admixture_multi(prefix, 5, sort_order) + theme(plot.margin = unit(c(0,0,0,0),'cm'))
-p4 <- plot_admixture_multi(prefix, 4, sort_order) + theme(plot.margin = unit(c(0,0,0,0),'cm'))
-p3 <- plot_admixture_multi(prefix, 3, sort_order) + theme(plot.margin = unit(c(0,0,0,0),'cm'))
-p2 <- plot_admixture_multi(prefix, 2, sort_order) + theme(plot.margin = unit(c(0,0,0,0),'cm'))
-pdf(file = paste(prefix_filename,'genotyping.pop.admixture.include_Biaka','Group_Detail','pdf',sep = '.'), width = 6, height = 3)
-multiplot(p6, p5, p4, p3, p2, cols = 1)
-dev.off()
-# ggarrange(p6, p5, p4, ,p3, p2,ncol=1,nrow = 5)
-###################### Genotyping & POP njtree ######################
-# library(ape)
-# # tree <- rtree(n=20)
-# # plot(tree, edge.width = 2)
-# 
-# mat.genotypes <- t(data_genotypes[26:216])
-# mat.nj <- nj(dist.gene(mat.genotypes))
-# myBoots <- boot.phylo(mat.nj, mat.genotypes, function(xx){nj(dist.gene(xx))}, B=100, mc.cores = 1)
-
-
-###################### Genotyping & POP treemix ######################
-
-source('plotting_funcs.R')
-
-# png(filename = paste(prefix_filename,'genotyping.pop', 'treemix', 'png',sep = '.'), width = 1000, height = 1200, res = val_res)
-pdf(file = paste(prefix_filename,'genotyping.pop','treemix','pdf',sep = '.'), width = 8, height = 8)
-prefix <- paste(path_data, '/treemix/merge.paragraph.genotypes.local.reformat.addPopInfo.addFST.noN.LDpruned', sep = '/') 
-plot_tree(cex = 0.6, prefix, mbar=FALSE)
-dev.off()
-# par(mfrow=c(2,3))
-# for(edge in 0:5){
-#   plot_tree(cex = 0.8, paste0(prefix ,'.',edge))
-#   title(paste(edge, "edges"))
-# }
-# for (edge in 0:5){
-#   plot_resid(stem = paste0(prefix, '.', edge), pop_order = 'samples.clust')
-# }
-pdf(file = paste(prefix_filename,'genotyping.pop.treemix','detailLoc','pdf',sep = '.'), width = 8, height = 8)
-# png(filename = paste(prefix_filename,'genotyping.pop.treemix', 'detailLoc', 'png',sep = '.'), width = 1000, height = 1200, res = val_res)
-prefix <- paste(path_data, '/treemix/merge.paragraph.genotypes.local.reformat.addPopInfo.addFST.noN.LDpruned.detailLoc', sep = '/') 
-plot_tree(cex = 0.5, prefix, mbar=FALSE)
 dev.off()
