@@ -398,10 +398,6 @@ dev.off()
 
 ###################### Brepoints CI ###################################
 data_tmp <- data_plot 
-# data_tmp$MAXCI_POS <- data_tmp$MAXCI_END
-# data_tmp <- rbind(data_tmp,data_plot)
-# data_tmp$MAXCI_POS <- data_tmp$MAXCI_END/2
-# data_tmp <- data_tmp[data_tmp$SUPP>1,]
 
 data_tmp$GROUP_CI <- NA
 data_tmp[data_tmp$MAXCI_POS<=1000&data_tmp$MAXCI_END<=1000,]$GROUP_CI <- '500bp-1kb'
@@ -410,32 +406,11 @@ data_tmp[data_tmp$MAXCI_POS<=250&data_tmp$MAXCI_END<=250,]$GROUP_CI <- '100bp-25
 data_tmp[data_tmp$MAXCI_POS<=100&data_tmp$MAXCI_END<=100,]$GROUP_CI <- '0-100bp'
 data_tmp$GROUP_CI <- factor(data_tmp$GROUP_CI, levels = c('0-100bp', '100bp-250bp', '250bp-500bp', '500bp-1kb'))
 
-## to do 需要画出每种SVTYPE在各个CI区间的比例，以及每种Group_SUPP在各个区间的比例
-pdf(file = paste(prefix_filename,'breakpoints.ci','pdf',sep = '.'), width = 4, height = 3)
-# png(filename = paste(prefix_filename,'breakpoints.ci.png',sep = '.'), width = 1200, height = 1000, res = val_res)
-ggplot(data=data_tmp, aes(x=MAXCI_POS, fill = GROUP_SUPP)) +
-  geom_histogram() +
-  theme_minimal()+
-  theme(legend.title=element_blank(),
-      # legend.position='bottom',
-      legend.position=c(0.9,0.9),
-      legend.spacing.x = unit(0.1, 'cm'),
-      legend.key.size=unit(0.3, 'cm'),
-      legend.text = element_text(size = 6,face = "bold"),
-      axis.text.x = element_text(size = 6,face = "bold", angle = 45),
-      axis.text.y = element_text(size = 6,face = "bold"),
-      axis.title.y = element_text(size = 6,face = "bold"),
-      axis.title.x = element_text(size = 6,face = "bold")) +
-  scale_fill_manual(values=config_color_group_supp) + 
-  xlab('Max Interval') + 
-  ylab("SV Count")
-dev.off()
 
 df.new<-ddply(data_tmp,.(GROUP_SUPP),plyr::summarise,
               prop=prop.table(table(GROUP_CI)),
               SUPP=names(table(GROUP_CI)))
 df.new$SUPP <- factor(df.new$SUPP, levels = c('0-100bp', '100bp-250bp', '250bp-500bp', '500bp-1kb'))
-# png(filename = paste(prefix_filename,'breakpoints.ci.group_supp.prop.png',sep = '.'), width = 1200, height = 1000, res = val_res)
 pdf(file = paste(prefix_filename,'breakpoints.ci.group_supp.prop','pdf',sep = '.'), width = 4, height =3)
 ggplot(df.new, aes(SUPP, prop, fill=GROUP_SUPP)) + 
   geom_bar(stat="identity",position = 'dodge') + 
@@ -455,61 +430,6 @@ ggplot(df.new, aes(SUPP, prop, fill=GROUP_SUPP)) +
   xlab("Max Interval of Breakpoints") + 
   ylab("Prop")
 dev.off()
-
-df.new<-ddply(data_tmp,.(GROUP_LEN),plyr::summarise,
-              prop=prop.table(table(GROUP_CI)),
-              SUPP=names(table(GROUP_CI)))
-df.new$SUPP <- factor(df.new$SUPP, levels = c('0-100bp', '100bp-250bp', '250bp-500bp', '500bp-1kb'))
-# png(filename = paste(prefix_filename,'breakpoints.ci.group_len.prop.png',sep = '.'), width = 1200, height = 1000, res = val_res)
-pdf(file = paste(prefix_filename,'breakpoints.ci.group_len.prop','pdf',sep = '.'), width = 4, height = 3)
-ggplot(df.new, aes(SUPP, prop, fill=GROUP_LEN)) + 
-  geom_bar(stat="identity",position = 'dodge') + 
-  theme_minimal()+
-  theme(legend.title=element_blank(),
-        legend.position=c(0.9,0.9),
-        legend.direction = 'vertical',
-        legend.spacing.x = unit(0.1, 'cm'),
-        legend.key.size=unit(0.3, 'cm'),
-        legend.text = element_text(size = 6,face = "bold"),
-        axis.text.x = element_text(size = 6,face = "bold"),
-        axis.text.y = element_text(size = 6,face = "bold"),
-        axis.title.y = element_text(size = 6,face = "bold"),
-        axis.title.x = element_text(size = 6,face = "bold"),
-        axis.title.x.bottom = element_text(margin = margin(15,0,0,0))
-        ) +
-  scale_fill_manual(values=config_color_group_len) + 
-  xlab("Max Interval of Breakpoints") + 
-  ylab("Prop")
-dev.off()
-
-data_sv_group <- plyr::count(data_tmp,c('GROUP_SUPP','GROUP_CI'))
-data_sv_group$label <- 0
-
-for (type_sv in levels(factor(data_sv_group$GROUP_SUPP))){
-  data_sv_group[data_sv_group$GROUP_SUPP==type_sv,]$label <- sum(data_sv_group[data_sv_group$GROUP_SUPP==type_sv,]$freq)
-}
-# png(filename = paste(prefix_filename,'breakpoints.ci.group_supp.bar.png',sep = '.'), width = 1200, height = 1000, res = val_res)
-pdf(file = paste(prefix_filename,'breakpoints.ci.group_supp.bar','pdf',sep = '.'), width = 8, height = 6)
-ggplot(data_sv_group, aes(x = GROUP_SUPP, y = freq, fill = forcats::fct_rev(GROUP_CI))) + 
-  geom_bar(position = "fill",stat = "identity") +
-  scale_y_continuous(labels = scales::percent_format(), expand = expand_scale(mult = .1)) + 
-  coord_flip() + 
-  theme_minimal()+
-  theme(legend.title=element_blank(),
-        legend.position="bottom",
-        legend.spacing.x = unit(0.1, 'cm'),
-        legend.key.size=unit(0.5, 'cm'),
-        legend.text = element_text(size = 5,face = "bold"),
-        axis.text.x = element_text(size = 10,face = "bold"),
-        axis.text.y = element_text(size = 10,face = "bold"),
-        axis.title.y = element_text(size = 10,face = "bold"),
-        axis.title.x.bottom = element_text(margin = margin(-10,0,0,0))) +
-  scale_fill_manual(values=config_color_group_len) + 
-  xlab("") + 
-  ylab("") +
-  geom_text(aes(label = label, y= ..prop..), stat= "count", hjust = -0.1, size=2)
-dev.off()
-
 
 ###################### Brepoints & Repeat ###################################
 data_tmp <- data_plot[,c('SVID','SVTYPE','GROUP_LEN','SVLEN','Repeats_type_right', 'Repeats_type_left', 'GCcontent_left','GCcontent_right', 'GROUP_SUPP')]

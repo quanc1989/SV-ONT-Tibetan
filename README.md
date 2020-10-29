@@ -217,3 +217,100 @@ ggplot(data=data_plot[data_plot$SVTYPE!='TRA',], aes(x=SVLEN, color = SVTYPE)) +
   ylab("SV Count")
 ```
 ![SV distribution](plots/sv.len.freqploy.png)
+
+* SV length group
+```R
+    data_sv_group <- plyr::count(data_plot,c('GROUP_LEN','GROUP_SUPP'))
+    data_sv_group$label <- 0
+    
+    for (type_sv in levels(data_sv_group$GROUP_LEN)){
+      data_sv_group[data_sv_group$GROUP_LEN==type_sv,]$label <- sum(data_sv_group[data_sv_group$GROUP_LEN==type_sv,]$freq)
+    }
+    ggplot(data_sv_group, aes(x = GROUP_LEN, y = freq, fill = GROUP_SUPP)) + 
+      geom_bar(position = "fill",stat = "identity") +
+      scale_y_continuous(labels = scales::percent_format(), expand = expand_scale(mult = .1)) + 
+      coord_flip() + 
+      theme_minimal()+
+      theme(legend.title=element_blank(),
+            legend.position="bottom",
+            legend.spacing.x = unit(0.1, 'cm'),
+            legend.key.size=unit(0.3, 'cm'),
+            legend.text = element_text(size = 6,face = "bold"),
+            axis.text.x = element_text(size = 6,face = "bold"),
+            axis.text.y = element_text(size = 6,face = "bold"),
+            axis.title.y = element_text(size = 6,face = "bold"),
+            axis.title.x.bottom = element_text(margin = margin(-10,0,0,0))) +
+      scale_fill_manual(values=config_color_group_supp) + 
+      xlab("") + 
+      ylab("") +
+      geom_text(aes(label = label, y= ..prop..), stat= "count", hjust = -0.1, size=1)
+```
+![SV distribution](plots/sv.len.group_supp.bar.png)
+
+* SV type group
+```R
+    data_sv_group <- plyr::count(data_plot,c('SVTYPE','GROUP_SUPP'))
+    data_sv_group$SVTYPE <- factor(data_sv_group$SVTYPE)
+    data_sv_group$label <- 0
+    
+    for (type_sv in levels(data_sv_group$SVTYPE)){
+      data_sv_group[data_sv_group$SVTYPE==type_sv,]$label <- sum(data_sv_group[data_sv_group$SVTYPE==type_sv,]$freq)
+    }
+    data_sv_group$SVTYPE <- factor(data_sv_group$SVTYPE, levels = c( 'DEL', 'INS', 'DUP', 'INV', 'TRA'))
+    
+    ggplot(data_sv_group, aes(x = SVTYPE, y = freq, fill = GROUP_SUPP)) + 
+      geom_bar(position = "fill",stat = "identity") +
+      scale_y_continuous(labels = scales::percent_format(), expand = expand_scale(mult = .1)) + 
+      coord_flip() + 
+      theme_minimal()+
+      theme(legend.title=element_blank(),
+            legend.position="bottom",
+            legend.spacing.x = unit(0.1, 'cm'),
+            legend.key.size=unit(0.3, 'cm'),
+            legend.text = element_text(size = 6,face = "bold"),
+            axis.text.x = element_text(size = 6,face = "bold"),
+            axis.text.y = element_text(size = 6,face = "bold"),
+            axis.title.y = element_text(size = 6,face = "bold"),
+            axis.title.x.bottom = element_text(margin = margin(-15,0,0,0))) +
+      scale_fill_manual(values=config_color_group_supp) + 
+      xlab("") + 
+      ylab("") +
+      geom_text(aes(label = label, y= ..prop..), stat= "count", hjust = -0.1, size=2)
+```
+![SV distribution](plots/sv.type.group_supp.bar.png)
+
+* SV breakpoints CI
+```R
+    data_tmp <- data_plot 
+
+    data_tmp$GROUP_CI <- NA
+    data_tmp[data_tmp$MAXCI_POS<=1000&data_tmp$MAXCI_END<=1000,]$GROUP_CI <- '500bp-1kb'
+    data_tmp[data_tmp$MAXCI_POS<=500&data_tmp$MAXCI_END<=500,]$GROUP_CI <- '250bp-500bp'
+    data_tmp[data_tmp$MAXCI_POS<=250&data_tmp$MAXCI_END<=250,]$GROUP_CI <- '100bp-250bp'
+    data_tmp[data_tmp$MAXCI_POS<=100&data_tmp$MAXCI_END<=100,]$GROUP_CI <- '0-100bp'
+    data_tmp$GROUP_CI <- factor(data_tmp$GROUP_CI, levels = c('0-100bp', '100bp-250bp', '250bp-500bp', '500bp-1kb'))
+    
+    
+    df.new<-ddply(data_tmp,.(GROUP_SUPP),plyr::summarise,
+                  prop=prop.table(table(GROUP_CI)),
+                  SUPP=names(table(GROUP_CI)))
+    df.new$SUPP <- factor(df.new$SUPP, levels = c('0-100bp', '100bp-250bp', '250bp-500bp', '500bp-1kb'))
+    ggplot(df.new, aes(SUPP, prop, fill=GROUP_SUPP)) + 
+      geom_bar(stat="identity",position = 'dodge') + 
+      theme_minimal()+
+      theme(legend.title=element_blank(),
+            legend.position=c(0.5,0.9),
+            legend.direction = 'horizontal',
+            legend.spacing.x = unit(0.1, 'cm'),
+            legend.key.size=unit(0.3, 'cm'),
+            legend.text = element_text(size = 6,face = "bold"),
+            axis.text.x = element_text(size = 6,face = "bold"),
+            axis.text.y = element_text(size = 6,face = "bold"),
+            axis.title.y = element_text(size = 6,face = "bold"),
+            axis.title.x = element_text(size = 6,face = "bold")
+            ) +
+      scale_fill_manual(values=config_color_group_supp) + 
+      xlab("Max Interval of Breakpoints") + 
+      ylab("Prop")
+```
+![SV distribution](plots/breakpoints.ci.group_supp.prop.png)
