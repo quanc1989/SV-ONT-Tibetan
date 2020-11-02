@@ -3,16 +3,16 @@ This repository includes data and scripts to analyze structural variations of 25
 
 ## Summary of SV callsets
 
-| Description                          | Format  | Location                                                                                                                          |
-|--------------------------------------|---------|-----------------------------------------------------------------------------------------------------------------------------------|
-| SV callsets                          | vcf.gz  | example/merge.ont.genotyped.SURVIVOR.sorted.reheader.corrected.INDELtoSYMBOL.sorted.local.addINFO.addFST.addCIPOS.addCIEND.vcf.gz |
-| SV genotypes for additional NGS data | vcf.gz  | example/merge.genotypes.corrected.delCHR.svtk.vcf.gz                                                                              |
-| Samplelist                           | xlsx    | example/samples.xlsx                                                                                                              |
-| SV annotation                        | tsv.zip | example/merge.genotypes.corrected.delCHR.svtk.annotsv.public.tsv.zip                                                              |
-| Sv Distribution                      | tsv     | example/merge.genotypes.corrected.delCHR.svtk.dist                                                                                |
-| SV hom&het                           | tsv     | example/merge.genotypes.corrected.delCHR.svtk.gte1ngs.LDpruned.het                                                                |
-| Fst between Tibetans and Hans        | tsv     | example/merge.paragraph.genotypes.TIBvsHAN.20k_5k.windowed.weir.fst                                                               |
-| Gene annotations                     | gtf.gz  | 0_raw_data/gencode.v32lift37.canonical_annotation.gtf.gz                                                                          |
+| Description      | Format  | Location                                                                                                                          |
+|------------------|---------|-----------------------------------------------------------------------------------------------------------------------------------|
+| SV callsets      | vcf.gz  | example/merge.ont.genotyped.SURVIVOR.sorted.reheader.corrected.INDELtoSYMBOL.sorted.local.addINFO.addFST.addCIPOS.addCIEND.vcf.gz |
+| SV genotypes     | vcf.gz  | example/merge.genotypes.corrected.delCHR.svtk.vcf.gz                                                                              |
+| Sample list      | xlsx    | example/samples.xlsx                                                                                                              |
+| SV annotation    | tsv.zip | example/merge.genotypes.corrected.delCHR.svtk.annotsv.public.tsv.zip                                                              |
+| SV Distribution  | tsv     | example/merge.genotypes.corrected.delCHR.svtk.dist                                                                                |
+| SV hom&het       | tsv     | example/merge.genotypes.corrected.delCHR.svtk.gte1ngs.LDpruned.het                                                                |
+| Fixation index   | tsv     | example/merge.paragraph.genotypes.TIBvsHAN.20k_5k.windowed.weir.fst                                                               |
+| Gene annotations | gtf.gz  | 0_raw_data/gencode.v32lift37.canonical_annotation.gtf.gz                                                                          |
 
 
 
