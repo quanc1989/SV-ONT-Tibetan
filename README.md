@@ -16,7 +16,7 @@ This repository includes data and scripts to analyze structural variations of 25
 
 
 
-## Pipeline for Multi-sample SV-calling and annotation.
+## Pipeline for Multi-sample SV-calling and annotation
 
 ### Script: pipeline.sv-calling.sh
 
@@ -43,7 +43,7 @@ In the bash file ```pipeline.sv-calling.sh```, we use sample data to demonstrate
 
 4. At last, we need to get a fully genotyped multi-samples dataset. We re-ran Sniffles across all the samples with all these potential regions (--Ivcf) and finally combined SVs with SURVIVOR. This time, we asked SURVIVOR only to report SVs supported by at least one sample, and they have to agree on the SV-type. Furthermore, we used a hard threshold with five minimum supporting reads, and all non-missing genotypes less than this threshold were modified to reference. 
 
-5. After SVs were discovered within a small population using long-read sequencing, we then genotyped these SVs with a relatively large amount of NGS data accumulated in previous studies. Paragraph, which is a new graph-based method, was used to genotype each NGS genome. We set the maximum allowed read count for SVs to 20 times the mean genome coverage for each dataset described above.
+5. After SVs were discovered within a small population using long-read sequencing, we then genotyped these SVs with a relatively large amount of NGS data accumulated in previous studies. Paragraph, which is a new graph-based method, was used to genotype each NGS genome. We set the maximum allowed read count for SVs to 20 times the mean genome coverage for each dataset described above. We replaced all genotypes which failed to pass any filters by Paragraph with missing genotypes (./.).
 
 6. We annotated SVs for a range of potential effects on coding sequences using SVTK and AnnotSV.
 
@@ -52,7 +52,13 @@ In the bash file ```pipeline.sv-calling.sh```, we use sample data to demonstrate
 
 
 -------
+## Sample and Variant quality control
 
+### Script: pipeline.sv-calling.sh
+
+### Requirements
+
+-------
 ## Visualization for chracteristics of SVs
 
 ### Script: pipeline.plot.R

@@ -1241,59 +1241,6 @@ ggplot(data_sv_group, aes(x=SVTYPE, y=LD,group=SVTYPE)) +
   ylab("max LD")
 dev.off()
 
-###################### target-90 enrichment ######################
-
-data.gene.background <- read.xlsx('example/enrich.xlsx')
-
-for (index_row in seq(nrow(data.gene.background))) {
-
-  tmp <- fisher.test(matrix(c(data.gene.background[index_row,]$A1,
-                              data.gene.background[index_row,]$A0,
-                              data.gene.background[index_row,]$N1,
-                              data.gene.background[index_row,]$N0),nrow = 2))
-  data.gene.background[index_row,]$Odds.Ratio <- tmp$estimate
-  data.gene.background[index_row,]$p.value <- tmp$p.value
-}
-
-data.gene.background$Gene.Set <- factor(data.gene.background$Gene.Set, levels = rev(data.gene.background$Gene.Set[order(data.gene.background$Odds.Ratio,decreasing = TRUE)]))
-pdf(file = paste(prefix_filename,'enrich.pathway','pdf',sep = '.'), width = 3.5, height = 2)
-ggplot(data=data.gene.background[2:11,],aes(x=Gene.Set,
-                                          y=A1,
-                                          fill=p.value)) + 
-  geom_bar(stat="identity") + coord_flip() + 
-  theme(panel.background=element_rect(fill='transparent',colour = 'black'),
-        legend.key.size=unit(0.2, 'cm'),
-        legend.title=element_blank(),
-        legend.text = element_text(size = 2.5,face = "bold"),
-        axis.text.x = element_text(size = 2.5,face = "bold"),
-        axis.text.y = element_text(color="black",size=2.5,face = "bold"),
-        axis.title.y = element_text(size = 2.5,face = "bold")) + 
-  scale_fill_gradient(low="red",high="blue", breaks=c(0.05, 0.1), limits=c(0, 0.15)) +
-  xlab("") + 
-  ylab("")
-dev.off()
-
-data.gene.background <- read.csv('example/metascape_result.tsv', sep = '\t')
-data.gene.background$count <- as.integer(str_split_fixed(data.gene.background$InTerm_InList,pattern = '/', n=2)[,1])
-data.gene.background$p <- 10 ** data.gene.background$LogP
-data.gene.background$Description <- factor(data.gene.background$Description, levels = rev(data.gene.background$Description))
-pdf(file = paste(prefix_filename,'enrich.go','pdf',sep = '.'), width = 3.5, height = 2)
-ggplot(data=data.gene.background[1:10,],aes(x=Description,
-                                            y=count,
-                                            fill=p)) + 
-  geom_bar(stat="identity") + coord_flip() + 
-  theme(panel.background=element_rect(fill='transparent',colour = 'black'),
-        legend.key.size=unit(0.2, 'cm'),
-        legend.title=element_blank(),
-        legend.text = element_text(size = 2.5,face = "bold"),
-        axis.text.x = element_text(size = 2.5,face = "bold"),
-        axis.text.y = element_text(color="black",size=2.5,face = "bold"),
-        axis.title.y = element_text(size = 2.5,face = "bold")) + 
-  scale_fill_gradient(low="red",high="blue") +
-  xlab("") + 
-  ylab("")
-dev.off()
-
 ###################### Genotyping & Gene ####################################################
 data_sv_group <- plyr::count(data_plot[data_plot$SVLEN<1000000&data_plot$SUPP_NGS>0&!is.na(data_plot$SUPP_NGS),],c('GROUP_SV','GROUP_SUPP_NGS'))
 data_sv_group$label <- 0
