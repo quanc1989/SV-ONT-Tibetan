@@ -61,16 +61,18 @@ In the bash file ```pipeline.sv-calling.sh```, we use sample data to demonstrate
 
 ### Requirements
 - [easySFS](https://github.com/isaacovercast/easySFS)
-- [dadi](https://dadi.readthedocs.io/en/latest/)
+- [∂a∂i](https://dadi.readthedocs.io/en/latest/)
 - [msprime](https://github.com/tskit-dev/tutorials)
 
 
 ### Summary
-In the bash file ```pipeline.demographic_inference.sh```, we use sample data to demonstrate the complete process of detecting and annotating structural variations based on nanopore sequencing technology.
+In the bash file ```pipeline.demographic_inference.sh```, we performed demographic inference by easySFS and make whole-genome simulation by msprime.
 
-1. Firstly, long reads were mapped to GRCh37 human reference from NCBI without alternate sequences. Mapping was performed with NGMLR with ONT default parameters.
+1. Firstly, we used SNVs to estimate the demographic history of Tibetans and Hans. An unfolded joint site frequency spectrum (SFS) of non-genic autosomal bases was estimated using easySFS.
 
-2. Then SV calling was performed on each sample using Sniffles, NanoSV, and SVIM. These tools have been reported to be compatible with NGMLR and show better accuracy and sensitivity than others. Five minimum supporting reads with at least 50 bp length was required. The insertion sequence and read ID was required for each method, and the rest are all default parameters.
+2. To explore the alternative demographic models for the population model YRI-TIB-HAN, we used the diffusion approximation method of ∂a∂i to analyze the joint SFS.
+
+3. When the best-fit demographic model was recognized, we used msprime to perform whole-genome coalescent simulations. To approximately account for mutational heterogeneity across the genome, we applied a three-step framework described in a previous study (Hsieh PH, et al. 2019).
 
 
 -------
