@@ -55,11 +55,11 @@ In the bash file ```pipeline.sv-calling.sh```, we use sample data to demonstrate
 
 -------
 
-## Pipeline for Demographic inference and simulation
+## Pipeline for demographic inference and simulation
 
 ### Script: pipeline.demographic_inference.sh
 
-### Requirements
+### Other Requirements
 - [easySFS](https://github.com/isaacovercast/easySFS)
 - [∂a∂i](https://dadi.readthedocs.io/en/latest/)
 - [msprime](https://github.com/tskit-dev/tutorials)
@@ -74,6 +74,17 @@ In the bash file ```pipeline.demographic_inference.sh```, we performed demograph
 
 3. When the best-fit demographic model was recognized, we used msprime to perform whole-genome coalescent simulations. To approximately account for mutational heterogeneity across the genome, we applied a three-step framework described in a previous study (Hsieh PH, et al. 2019).
 
+-------
+
+## Pipeline for detection of introgression signals
+
+### Script: pipeline.detection_introgression.sh
+
+### Other Requirements
+- [genomics_general](https://github.com/simonhmartin/genomics_general)
+
+### Summary
+In the bash file ```pipeline.detection_introgression.sh```, we applied the D-statistic and fd-statistic for each simualtion.
 
 -------
 ## Visualization for chracteristics of SVs
