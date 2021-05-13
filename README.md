@@ -29,6 +29,8 @@ This repository includes data and scripts to analyze structural variations of 25
 - [SVTK](https://github.com/talkowski-lab/svtk)
 - [ANNOTSV](https://github.com/lgmgeo/AnnotSV)
 - [Paragraph](https://github.com/Illumina/paragraph)
+- [vcftools](http://vcftools.sourceforge.net/man_latest.html)
+- [bcftools](http://samtools.github.io/bcftools)
 - python3
 - numpy
 
@@ -52,11 +54,24 @@ In the bash file ```pipeline.sv-calling.sh```, we use sample data to demonstrate
 
 
 -------
-## Sample and Variant quality control
 
-### Script: pipeline.sv-calling.sh
+## Pipeline for Demographic inference and simulation
+
+### Script: pipeline.demographic_inference.sh
 
 ### Requirements
+- [easySFS](https://github.com/isaacovercast/easySFS)
+- [dadi](https://dadi.readthedocs.io/en/latest/)
+- [msprime](https://github.com/tskit-dev/tutorials)
+
+
+### Summary
+In the bash file ```pipeline.demographic_inference.sh```, we use sample data to demonstrate the complete process of detecting and annotating structural variations based on nanopore sequencing technology.
+
+1. Firstly, long reads were mapped to GRCh37 human reference from NCBI without alternate sequences. Mapping was performed with NGMLR with ONT default parameters.
+
+2. Then SV calling was performed on each sample using Sniffles, NanoSV, and SVIM. These tools have been reported to be compatible with NGMLR and show better accuracy and sensitivity than others. Five minimum supporting reads with at least 50 bp length was required. The insertion sequence and read ID was required for each method, and the rest are all default parameters.
+
 
 -------
 ## Visualization for chracteristics of SVs
