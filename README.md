@@ -1,6 +1,12 @@
 # SV-ONT-Tibetan
 This repository includes data and scripts to analyze structural variations of 25 Chinese samples using nanopore sequencing. 
 
+# Citing information
+If you use the methods or pipeline in this repository, please cite our paper.
+
+Quan, C., Li, Y., Liu, X. et al. Characterization of structural variation in Tibetans reveals new evidence of high-altitude adaptation and introgression. Genome Biol 22, 159 (2021). https://doi.org/10.1186/s13059-021-02382-3
+
+
 ## Summary of SV callsets
 
 | Description      | Format  | Location                                                                                                                          |
